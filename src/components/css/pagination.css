@@ -1,0 +1,25 @@
+nav.Pagination ul li {
+    list-style: none;
+    margin-right: .5rem;
+}
+nav.Pagination .pageButton{
+    padding: .8rem;
+    background: #e3e3e3;
+}
+nav.Pagination .pageButton.active{
+    background: #d0b55e;
+    color: white;
+}
+nav.Pagination{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+nav.Pagination span {
+    font-size: 0.8rem;
+}
+nav.Pagination ul {
+    padding: 0;
+    display: flex;
+    margin: 1.5rem 0 0 0;
+}

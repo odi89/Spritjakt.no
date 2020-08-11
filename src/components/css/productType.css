@@ -1,0 +1,50 @@
+.ProductType {
+    border-radius: 3px;
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: #1f2b33;
+    cursor: pointer;
+    background: #e3e3e3;
+    padding: 0;
+    max-height: unset;
+}
+
+label.ProductType.true {
+    background: #d0b55e;
+    color: white;
+}
+
+label.ProductType:focus-within {
+        outline-color: black;
+        outline-style: auto;    
+}
+
+.ProductType span.name {
+    padding: 0.2rem 0.5rem;
+}
+.ProductType span.count {
+    margin: 0;
+    border-left: .5px solid rgba(255,255,255,1);
+    padding: 0.2rem 0.5rem;
+    display: flex;
+    border-bottom-right-radius: 3px;
+    border-top-right-radius: 3px;
+    align-items: center;
+    min-width: 1rem;
+    display: block;
+}
+label.ProductType input {
+    width: 0;
+    margin: 0;
+    opacity: 0;
+}
+@media (max-width: 768px){
+    .ProductType span.name, .ProductType span.count {
+        padding: 0.3rem 0.5rem;
+    }
+
+}

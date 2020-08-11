@@ -1,0 +1,120 @@
+.ProductComp {
+    border: solid 1px rgba(0,0,0,0.2);
+    border-radius: 3px;
+    padding: 0.5rem;
+    list-style: none;
+    text-align: left;
+    position: relative;
+    transition: 0.2s 0.05s;
+    text-align: left;
+  }
+li.ProductComp:hover, .ProductComp:focus-within{
+    box-shadow: 1px 1px 4px rgba(0,0,0,.3);
+}
+li.ProductComp:focus-within{
+    outline: 1px auto black;
+}
+
+li.ProductComp > button{
+    cursor: pointer;
+    width: 100%;
+    background: none;
+    border:none;
+    outline: none;
+}
+
+.ProductComp .product_img {
+    min-height: 200px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+.ProductComp .product_details {
+    display: grid;
+    grid-template-areas: 
+                        "typ sto"
+                         "nam nam"
+                         "pri alk"
+                         "opr vol";
+}
+span.change_time {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    text-align: right;
+}
+.ProductComp .alcohol {
+    grid-area: alk;
+    text-align: right;
+}
+.ProductComp .volume {
+    grid-area: vol;
+    text-align: right;
+}
+.ProductComp .type {
+    grid-area: typ;
+    border-bottom: .5px solid black;
+    padding: 0.2rem;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    text-align: left;
+}
+.ProductComp .stock {
+    grid-area: sto;
+    border-bottom: .5px solid black;
+    padding: 0.2rem;
+    font-size: 0.8rem;
+    text-align: right;
+}
+.ProductComp .stock svg{
+    opacity: 0.5;
+}
+.ProductComp .price {
+    grid-area: pri;
+    font-size: 1.2rem;
+    align-self: end;
+    text-align: left;
+}  
+.ProductComp .old_price {
+    grid-area: opr;
+    align-self: end;
+    text-align: left;
+}
+.ProductComp .name {
+    grid-area: nam;
+    margin: .25rem 0;
+    font-size: 1rem;
+    text-align: left;
+    min-height: 3rem;
+} 
+.ProductComp a {
+    color: black;
+    text-decoration: none;
+}
+
+
+.ProductComp .percentage_change {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: white;
+    padding: 0.2rem 0.5rem;
+    font-weight: 400;
+    border-bottom-right-radius: 3px;
+    opacity: 0.8;
+}
+
+.ProductComp.price_raised .percentage_change {
+    background: rgba(184, 91, 87, 0.8);
+}
+
+.ProductComp.price_lowered .percentage_change {
+    background: rgba(97, 160, 85, 0.8);
+}
+
+.ProductComp span.old_price {
+    text-decoration: line-through;
+    font-size: 1rem;
+    display: block;
+}

@@ -1,0 +1,39 @@
+.expandedProduct {
+    background: white;
+    box-shadow: 2px 2px 9px rgba(0,0,0,.5);
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    margin: auto;
+    max-width: 25rem;
+    z-index: 9999;
+    padding: 1rem;
+    grid-gap: 1rem;
+    border-radius: 5px;
+}
+.fa-external-link-alt {
+    margin-left: .5rem;
+}
+.expandedProduct .title{
+    margin-bottom: 0;
+}
+.expandedProduct .graph {
+    height: 15rem;
+    max-height: 30vh;
+    grid-area: gra;
+}
+.expandedProduct .ProductComp, .expandedProduct .ProductComp > button{
+    cursor: default;
+    box-shadow: none!important;
+    outline: none!important;
+}
+
+.expandedProduct .ProductComp .product_img {
+    min-height: 150px;
+}
+.expandedProduct a.clickable {
+    background: #d0b55e;
+    color: white;
+    font-size: 1rem;
+    margin-top: 5px;
+}
