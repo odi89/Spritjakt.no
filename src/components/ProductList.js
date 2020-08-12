@@ -27,7 +27,7 @@ class ProductList extends React.Component {
           showAllresults: true,
           highlightedProduct: false,
           graphIsVisible: false,
-          timeSpan: "7days" ,
+          timeSpan: "14days" ,
           productResultCount: 0,
           page: 1,
           pageSize: 24,

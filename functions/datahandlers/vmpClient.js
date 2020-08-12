@@ -71,7 +71,7 @@ class Product{
         this.LastUpdated = d.getTime();
         this.Id = rawProduct.basic.productId;
         this.Name = rawProduct.basic.productLongName;
-        this.SearchableName = rawProduct.basic.productLongName.toLowerCase().replace(" ","");
+        this.SearchableName = rawProduct.basic.productLongName.toLowerCase().replace(/\s/g, '');
         this.Volume = rawProduct.basic.volume;
         this.Alcohol = rawProduct.basic.alcoholContent;
         this.Country = rawProduct.origins.origin.country;

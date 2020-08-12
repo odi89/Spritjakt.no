@@ -33,7 +33,8 @@ class SpritjaktClient{
         }
         let res = await rp(options)
         .then(function (res) {
-            return res;
+
+            return res === undefined ? [] : res;
         })
         .catch(function (err) {
             console.log(err);

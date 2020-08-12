@@ -75,7 +75,7 @@ exports.GetOnSaleProductsHttp = functions.region('europe-west1').runWith(runtime
             
             p.LatestPrice = p.PriceHistory[p.PriceHistorySorted[0]];
 
-            let priceHistorySortedAndFiltered = p.PriceHistorySorted.filter(priceDate => ( priceDate <= lastWriteTime.BasePriceTime && p.PriceHistory[priceDate] !== p.LatestPrice));
+            let priceHistorySortedAndFiltered = p.PriceHistorySorted.filter(priceDate => ( priceDate <= lastWriteTime.BasePriceTime && priceDate !== p.PriceHistorySorted[0]));
             
             if(priceHistorySortedAndFiltered.length === 0 ){
              return;
@@ -153,12 +153,12 @@ exports.productSearch = functions.region('europe-west1').runWith(runtimeOpts).ht
     if(req.query.pingCall){
       return res.send("It lives another day...");
     }else{
-    if(req.query.searchString === undefined){
+    if(req.query.searchString === undefined || req.query.searchString.trim().length === 0){
       return res.status(400).send();
       }
     }
-
-    const products = await FirebaseClient.ProductSearch(req.query.searchString);
+    searchString = req.query.searchString.toLowerCase().replace(/\s/g, '');
+    const products = await FirebaseClient.ProductSearch(searchString);
     let preppedProducts = [];
     Object.keys(products).forEach(id => {
       let p = products[id];
@@ -166,7 +166,7 @@ exports.productSearch = functions.region('europe-west1').runWith(runtimeOpts).ht
       
       p.LatestPrice = p.PriceHistory[p.PriceHistorySorted[0]];
 
-      let priceHistorySortedAndFiltered = p.PriceHistorySorted.filter(priceDate => ( priceDate <= allTimeEarliestDate && p.PriceHistory[priceDate] !== p.LatestPrice));
+      let priceHistorySortedAndFiltered = p.PriceHistorySorted.filter(priceDate => ( priceDate <= allTimeEarliestDate && priceDate !== p.PriceHistorySorted[0]));
       
       if(priceHistorySortedAndFiltered.length !== 0 ){
   
@@ -187,7 +187,7 @@ exports.productSearch = functions.region('europe-west1').runWith(runtimeOpts).ht
       if(p.SubType == undefined){
         p.SubType = p.Type;
       }
-      if(p.SearchableName.includes(req.query.searchString)){
+      if(p.SearchableName.includes(req.query.searchString.trim())){
         preppedProducts.push(p);
       }
       

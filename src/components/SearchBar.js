@@ -21,9 +21,6 @@ class SearchBar extends React.Component {
         }
         this.ProductFetchTimeout = null
     }
-    componentDidUpdate(){
-      //  clearTimeout(this.ProductFetchTimeout);
-    }
 
     handleChange = (event) => {
         
@@ -33,7 +30,7 @@ class SearchBar extends React.Component {
         
         clearTimeout(this.ProductFetchTimeout);
 
-        if(event.target.value.length < 3) return;
+        if(event.target.value.trim().length < 3) return;
 
         this.setState({
             loading: true
@@ -44,10 +41,9 @@ class SearchBar extends React.Component {
         }, 500);
 
     }
-    
 
    async SearchProducts(searchString) {
-       let loadedProducts = await SpritjaktClient.SearchProducts(searchString.toLowerCase().replace(" ",""));
+       let loadedProducts = await SpritjaktClient.SearchProducts(searchString.toLowerCase().replace(/\s/g, ''));
        if(this.state.searchString !== searchString ) return;
        this.setState({
             loading: false,

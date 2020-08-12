@@ -59,7 +59,7 @@ module.exports = class FirebaseClient{
     }
 
     static async ProductSearch(searchString){
-        return firebase.database().ref('/Products').orderByChild("SearchableName").startAt(searchString).limitToFirst(10).once('value').then(function(snapshot) {
+        return firebase.database().ref('/Products').orderByChild("SearchableName").startAt(searchString).limitToFirst(20).once('value').then(function(snapshot) {
             return snapshot.val();
           });
     }

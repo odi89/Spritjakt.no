@@ -41,6 +41,7 @@ ul.ProductList {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  z-index: 100;
 }
 
 .priceGraphWrapper .backdrop label {
