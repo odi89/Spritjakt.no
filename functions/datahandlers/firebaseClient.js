@@ -1,15 +1,12 @@
 const SortArray = require('sort-array');
 const firebase = require('firebase-admin');
-
+const { updateStocks } = require('..');
+require("firebase/firestore");
 
 module.exports = class FirebaseClient{
 
-    static async SaveProductsInBulk(UpdatedProducts){
-    
-    var time = await firebase.database().ref('/lastProductWriteTime').once('value').then(snapshot => {return snapshot.val()});    
+    static async UpdateProductPrices(UpdatedProducts){
 
-    let productRef = firebase.database().ref('/Products');
-    await productRef.transaction( function(StoredProducts){
         let d = new Date();
         d.setDate(d.getDate()-1);
         d.setHours(22);
@@ -17,39 +14,38 @@ module.exports = class FirebaseClient{
         d.setSeconds(0);
         d.setMilliseconds(0);
         var today = d.getTime();
-        
-        if(StoredProducts){        
-            UpdatedProducts.forEach(p => {
-                let sp = StoredProducts[p.Id];
-                sp.SearchableName = p.SearchableName;
 
-                if(sp === undefined){
-                    p.PriceHistory = {[today]: p.CurrentPrice};                    
-                    delete p.CurrentPrice;
-                    StoredProducts[p.Id] = p; 
-                }else{
-                delete sp.PriceHistory[d];
+        this.UpdateWriteTime(UpdatedProducts.length);
+        for (let i = 0; i < UpdatedProducts.length; i++) {
+
+            const p = UpdatedProducts[i];
+
+            const productRef = firebase.firestore().collection('Products').doc(p.Id);
+            const productDoc = await productRef.get();
+            let sp = productDoc.data();
+            sp.SearchableName = p.SearchableName;
+
+            if(sp === undefined){
+                p.PriceHistory = {[today]: p.CurrentPrice};                    
+                delete p.CurrentPrice;
+                sp = p; 
+            }else{
+                delete sp.PriceHistory[today];
                 let LatestPrice = p.CurrentPrice;
-                    
                 let priceHistorySorted = SortArray(Object.keys(sp.PriceHistory), {order: "desc"});
 
                 if(priceHistorySorted.length !== 0){
-                    StoredProducts[p.Id] = sp;
-
+                    
                     let comparativeBasePriceDate = priceHistorySorted[0]; 
-
                     //Only updating LastUpdate if there has been an actual pricechange
-                    if(StoredProducts[p.Id].PriceHistory[comparativeBasePriceDate] !== LatestPrice){
-                        StoredProducts[p.Id].LastUpdated = p.LastUpdated;
+                    if(sp.PriceHistory[comparativeBasePriceDate] !== LatestPrice){
+                        sp.LastUpdated = p.LastUpdated;
                         sp.PriceHistory[today] = p.CurrentPrice;
                     }
                 }
-                }
-            });
+            }
+            console.log(await productRef.update(sp));
         }
-        return StoredProducts;
-      });
-        await this.UpdateWriteTime(UpdatedProducts.length, time);
     }
 
     static async FetchOnSaleProductsFireStore(UpdateTime){
@@ -82,15 +78,9 @@ module.exports = class FirebaseClient{
           });
     }
 
-    static async UpdateWriteTime(numberOfProducts, time){
-
-        //Setting a cutoff for when a price-change is no longer considered a deal
-        if(time.BasePriceTime < Date.now() - 60 * 60 * 1000 * 24 * 30){
-            time.BasePriceTime = Date.now();
-        }
+    static async UpdateWriteTime(numberOfProducts){        
         let now = new Date();
         var lastWriteTime =  {
-            BasePriceTime : time.BasePriceTime,
             UpdateFetchTime : now.toLocaleString(),
             ProductsUpdated: numberOfProducts
         }
@@ -101,21 +91,14 @@ module.exports = class FirebaseClient{
 
     static async UpdateStock(Stocks){
 
-        let productRef = firebase.database().ref('/Products');
-        await productRef.transaction( function(StoredProducts){
-
-            if(StoredProducts){        
-                Stocks.forEach(s => {
-
-                    let id = s.ProductId;
-                    delete s.ProductId;
-                    if(StoredProducts[id]){
-                        StoredProducts[id].Stock = s;
-                    }
-                });
-            }
-            return StoredProducts;
-          });
+        for (let i = 0; i < Stocks.length; i++) {
+            const s = Stocks[i];
+            const productRef = firebase.firestore().collection('Products').doc(s.ProductId);
+            const productDoc = await productRef.get();
+            let sp = productDoc.data();
+            sp.Stock = s;
+            console.log(await productRef.update(sp));
+        }
     }    
 }
 

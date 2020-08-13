@@ -26,12 +26,11 @@ const runtimeOpts = {
     memory: '512MB'
 }
 
-//init();
-//async function init(){
+
 exports.fetchProducts = functions.region('europe-west1').runWith(runtimeOpts).pubsub.schedule('15 6 * * *').timeZone("Europe/Paris").onRun(async (context) => {
-    await FirebaseClient.SaveProductsInBulk( await VmpClient.FetchFreshProducts());
+    await FirebaseClient.UpdateProductPrices( await VmpClient.FetchFreshProducts());
 });
-//}
+
 exports.updateStocks = functions.region('europe-west1').runWith(runtimeOpts).pubsub.schedule('15 8 * * *').timeZone("Europe/Paris").onRun(async (context) => {
   await FirebaseClient.UpdateStock( await VmpClient.FetchFreshStocks());
 });
@@ -159,8 +158,7 @@ exports.productSearch = functions.region('europe-west1').runWith(runtimeOpts).ht
       return res.status(400).send();
       }
     }
-    searchString = req.query.searchString.toLowerCase().replace(/\s/g, '');
-
+    searchString = req.query.searchString.toLowerCase().replace(/[^a-z0-9]/gi,'');
     var products = await FirebaseClient.ProductSearchFireStore(searchString);
     
     let preppedProducts = [];
