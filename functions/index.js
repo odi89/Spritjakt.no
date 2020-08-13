@@ -160,7 +160,9 @@ exports.productSearch = functions.region('europe-west1').runWith(runtimeOpts).ht
       }
     }
     searchString = req.query.searchString.toLowerCase().replace(/\s/g, '');
-    const products = await FirebaseClient.ProductSearch(searchString);
+
+    var products = await FirebaseClient.ProductSearchFireStore(searchString);
+    
     let preppedProducts = [];
     Object.keys(products).forEach(id => {
       let p = products[id];

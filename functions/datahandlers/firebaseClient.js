@@ -64,12 +64,17 @@ module.exports = class FirebaseClient{
         return products;
     }
 
-    static async ProductSearch(searchString){
-        return firebase.database().ref('/Products').orderByChild("SearchableName").startAt(searchString).limitToFirst(20).once('value').then(function(snapshot) {
-            return snapshot.val();
-          });
+    static async ProductSearchFireStore(searchString){
+        let productRef = firebase.firestore().collection('Products').where('SearchableName', '>=', searchString).orderBy('SearchableName').limit(20);
+        let snapshot =  await productRef.get();
+        let products = [];
+        if (!snapshot.empty) {
+            snapshot.forEach(p => {       
+                products.push(p.data());
+            });
+        }
+        return products;
     }
-
 
     static async FetchLastWriteTime(){
         return firebase.database().ref('/lastProductWriteTime').once('value').then(function(snapshot) {
