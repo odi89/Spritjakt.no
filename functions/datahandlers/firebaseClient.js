@@ -90,15 +90,17 @@ module.exports = class FirebaseClient{
     }
 
     static async UpdateStock(Stocks){
-
-        for (let i = 0; i < Stocks.length; i++) {
-            const s = Stocks[i];
-            const productRef = firebase.firestore().collection('Products').doc(s.ProductId);
-            const productDoc = await productRef.get();
-            let sp = productDoc.data();
-            sp.Stock = s;
-            console.log(await productRef.update(sp));
+        if(Stocks){
+            for (let i = 0; i < Stocks.length; i++) {
+                const productRef = firebase.firestore().collection('Products').doc(Stocks[i].ProductId);
+                console.log(await productRef.update({
+                    Stock: {
+                        Stock: Stocks[i].Stock,
+                        StoresWithStock: Stocks[i].StoresWithStock 
+                    }
+                }));
+            }
         }
-    }    
+        }    
 }
 
