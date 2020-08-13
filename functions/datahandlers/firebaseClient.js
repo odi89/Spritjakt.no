@@ -52,10 +52,16 @@ module.exports = class FirebaseClient{
         await this.UpdateWriteTime(UpdatedProducts.length, time);
     }
 
-    static async FetchOnSaleProducts(BasePriceTime){
-        return firebase.database().ref('/Products').orderByChild("LastUpdated").startAt(BasePriceTime).once('value').then(function(snapshot) {
-            return snapshot.val();
-          });
+    static async FetchOnSaleProductsFireStore(UpdateTime){
+        let productRef = firebase.firestore().collection('Products').where('LastUpdated', '>=', UpdateTime).orderBy('LastUpdated');
+        let snapshot =  await productRef.get();
+        let products = [];
+        if (!snapshot.empty) {
+            snapshot.forEach(p => {       
+                products.push(p.data());
+            });
+        }
+        return products;
     }
 
     static async ProductSearch(searchString){

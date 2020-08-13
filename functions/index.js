@@ -58,10 +58,12 @@ exports.GetOnSaleProductsHttp = functions.region('europe-west1').runWith(runtime
         if( allowedTimeSpans[req.query.timeSpan] !== undefined && allowedTimeSpans[req.query.timeSpan].getTime() > allTimeEarliestDate.getTime() ){
           timeSpan = allowedTimeSpans[req.query.timeSpan];
         }
-        console.log(timeSpan);
+
         var lastWriteTime = await FirebaseClient.FetchLastWriteTime();
         lastWriteTime.BasePriceTime = timeSpan.getTime();
-        const products = await FirebaseClient.FetchOnSaleProducts(timeSpan.getTime());
+
+        var products = await FirebaseClient.FetchOnSaleProductsFireStore(timeSpan.getTime());
+       
         var productsWithPriceChange = [];
 
         if(products){

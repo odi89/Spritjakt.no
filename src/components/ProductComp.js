@@ -14,7 +14,7 @@ class ProductComp extends React.Component {
           backgroundImage: "url(https://bilder.vinmonopolet.no/cache/100x100/" + product.Id + "-1.jpg)",
       };
       var priceIsLower = product.LatestPrice < product.ComparingPrice;
-      var lastChangedDate = new Date(parseInt(product.LastUpdated));
+      var lastChangedDate = new Date(product.LastUpdated);
       if(product.Stock){
         var stock = product.Stock.Stock > 99 ? "99+" : product.Stock.Stock; 
       }

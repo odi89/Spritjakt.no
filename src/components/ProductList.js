@@ -21,7 +21,6 @@ class ProductList extends React.Component {
         this.state = {
           loadedProducts : [],
           loading: true, 
-          lastWriteTime : undefined,
           sort: "LastUpdated_desc",
           productTypes: {},
           showAllresults: true,
@@ -43,11 +42,10 @@ class ProductList extends React.Component {
     }
 
     async updateProductResults(timeSpan){
-      let {lastWriteTime, products} = await SpritjaktClient.FetchProducts(timeSpan);
+      let products = await SpritjaktClient.FetchProducts(timeSpan);
 
       this.setState({
         loading: false, 
-        lastWriteTime : lastWriteTime,
         page: 1,
       });
       

@@ -7,7 +7,8 @@ class SpritjaktClient{
         let options =  {
             uri : "https://europe-west1-spritjakt.cloudfunctions.net/GetOnSaleProductsHttp",
             qs:{
-               timeSpan: timeSpan
+               timeSpan: timeSpan,
+               firestore: true
             },
             json: true
         }
@@ -18,9 +19,8 @@ class SpritjaktClient{
         .catch(function (err) {
             console.log(err);
         });
-        let lastWriteTime = res.LastWriteTime;
-        let products = res.products;
-        return { lastWriteTime, products};
+        
+        return res.products;
     }
     static async SearchProducts(searchString){
 
