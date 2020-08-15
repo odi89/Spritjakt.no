@@ -44,7 +44,7 @@ exports.GetOnSaleProductsHttp = functions.region('europe-west1').runWith(runtime
       res.set('Access-Control-Allow-Methods', 'GET');
       res.set('Access-Control-Allow-Headers', 'Content-Type');
       res.set('Access-Control-Max-Age', '3600');
-      res.status(204).send('');
+      return res.status(204).send('');
     }else{
       
       //PingCall just to keep function alive
@@ -66,6 +66,8 @@ exports.GetOnSaleProductsHttp = functions.region('europe-west1').runWith(runtime
         var productsWithPriceChange = [];
 
         if(products){
+          console.log(Object.keys(products).length);
+          console.log(req.query.timeSpan);
           Object.keys(products).forEach(id => {
             let p = products[id];
             p.PriceHistorySorted = SortArray(Object.keys(p.PriceHistory), {order: "desc"});
@@ -197,3 +199,16 @@ exports.productSearch = functions.region('europe-west1').runWith(runtimeOpts).ht
     return res.send(preppedProducts);
   }
 });
+
+exports.StockListener = functions.firestore
+    .document('Products/{productId}')
+    .onUpdate(async (change, context) => {
+      const newValue = change.after.data();
+      const previousValue = change.before.data();
+      
+      if(previousValue.Stock === newValue.Stock) return;
+
+      newValue.Stock.Stores = await VmpClient.FetchStoreStock(newValue.ProductId);
+
+      FirebaseClient.UpdateStoreStock(newValue.productId, newValue.Stock );
+    });

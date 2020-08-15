@@ -30,8 +30,12 @@ class App extends React.Component {
       <footer>
         Priser og lagerbeholdning oppdateres daglig, hendholdsvis  06:15 og 08:15
         <br />
+        <span>
+          Har du tilbakemeldinger eller funnet noe feil?
+          Opprett gjerne et issue på <a target="_blank" href="https://github.com/matslb/Spritjakt.no">Github</a>
+        </span>
         <span data-nosnippet="true">
-          © 2020 Mats Løvstrand Berntsen
+          © 2020 <a target="_blank" href="https://no.linkedin.com/in/mats-l%C3%B8vstrand-berntsen-4682b2142" >Mats Løvstrand Berntsen</a>
         </span>
         </footer>
     </div>

@@ -93,14 +93,28 @@ module.exports = class FirebaseClient{
         if(Stocks){
             for (let i = 0; i < Stocks.length; i++) {
                 const productRef = firebase.firestore().collection('Products').doc(Stocks[i].ProductId);
-                console.log(await productRef.update({
-                    Stock: {
-                        Stock: Stocks[i].Stock,
-                        StoresWithStock: Stocks[i].StoresWithStock 
-                    }
-                }));
+                try{    
+                    await productRef.update({
+                        Stock: {
+                            Stock: Stocks[i].stock
+                        }
+                    });
+                }catch (e) {
+                    console.log("Product with id " + Stocks[i].ProductId + " does not exist");
+                }
             }
         }
-        }    
+    }
+    static async UpdateStoreStock(productId, stock){
+        const productRef = firebase.firestore().collection('Products').doc(productId);
+        try{    
+          await productRef.update({
+              Stock: stock
+          });
+        }catch (e) {
+          console.log(e);
+        }
+    }        
 }
+
 

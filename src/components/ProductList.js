@@ -209,7 +209,7 @@ class ProductList extends React.Component {
    render(){
      let {pageSize, page, productResultCount} = this.state;    
     return (
-      <div key="Productlist" data-nosnippet="true"  className="main">
+      <div key="Productlist" className="main">
         <p>Nylig oppdatert</p>
         <div className="before_products">
           <div className="nav">
