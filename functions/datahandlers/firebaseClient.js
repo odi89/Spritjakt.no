@@ -1,6 +1,5 @@
 const SortArray = require('sort-array');
 const firebase = require('firebase-admin');
-const { updateStocks } = require('..');
 require("firebase/firestore");
 
 module.exports = class FirebaseClient{
@@ -22,30 +21,31 @@ module.exports = class FirebaseClient{
 
             const productRef = firebase.firestore().collection('Products').doc(p.Id);
             const productDoc = await productRef.get();
-            let sp = productDoc.data();
-            sp.SearchableName = p.SearchableName;
-
+            let sp = productDoc.data();            
             if(sp === undefined){
                 p.PriceHistory = {[today]: p.CurrentPrice};                    
                 delete p.CurrentPrice;
-                sp = p; 
-            }else{
-                delete sp.PriceHistory[today];
-                let LatestPrice = p.CurrentPrice;
-                let priceHistorySorted = SortArray(Object.keys(sp.PriceHistory), {order: "desc"});
+                sp = p;
+                continue;
+            }
+            delete sp.PriceHistory[today];
+            let LatestPrice = p.CurrentPrice;
+            let priceHistorySorted = SortArray(Object.keys(sp.PriceHistory), {order: "desc"});
 
-                if(priceHistorySorted.length !== 0){
-                    
-                    let comparativeBasePriceDate = priceHistorySorted[0]; 
-                    //Only updating LastUpdate if there has been an actual pricechange
-                    if(sp.PriceHistory[comparativeBasePriceDate] !== LatestPrice){
-                        sp.LastUpdated = p.LastUpdated;
-                        sp.PriceHistory[today] = p.CurrentPrice;
-                    }
+            if(priceHistorySorted.length !== 0){
+                
+                let comparativeBasePriceDate = priceHistorySorted[0]; 
+                //Only updating LastUpdate if there has been an actual pricechange
+                if(sp.PriceHistory[comparativeBasePriceDate] !== LatestPrice){
+                    sp.LastUpdated = p.LastUpdated;
+                    sp.PriceHistory[today] = p.CurrentPrice;
                 }
             }
+            sp.SearchableName = p.SearchableName;
+            sp.Description = p.Description;
             await productRef.update(sp);
         }
+        console.log(UpdatedProducts.length);
     }
 
     static async FetchOnSaleProductsFireStore(UpdateTime){
@@ -91,9 +91,7 @@ module.exports = class FirebaseClient{
     }
 
     static async SetStockUpdateList(Stocks){
-        if(Stocks.length > 0){
-            firebase.database().ref("/StocksToBeFetched/").set(Stocks);
-        }
+        firebase.database().ref("/StocksToBeFetched/").set(Stocks);
     }
     static async UpdateProductStock(stock){
         const productRef = firebase.firestore().collection('Products').doc(stock.productId);

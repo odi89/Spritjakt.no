@@ -21,14 +21,15 @@ class ProductList extends React.Component {
         this.state = {
           loadedProducts: [],
           stores: {},
+          sortedStores: [],
           selectedStore: "0",
           loading: true, 
-          sort: "LastUpdated_desc",
+          sort: "SortingDiscount_asc",
           productTypes: {},
           showAllresults: true,
           highlightedProduct: false,
           graphIsVisible: false,
-          timeSpan: "14days" ,
+          timeSpan: "30days" ,
           productResultCount: 0,
           page: 1,
           pageSize: 24,
@@ -52,6 +53,7 @@ class ProductList extends React.Component {
       
       let loadedProducts = [];
       let stores = {};
+      let sortedStores= [];
       let productTypes = this.state.productTypes;
       Object.keys(productTypes).map(ptkey => (productTypes[ptkey].count = {["0"]:0}));
 
@@ -74,14 +76,18 @@ class ProductList extends React.Component {
           for (const i in p.Stock.Stores) {
               const store = p.Stock.Stores[i];
               if(stores[store.name] === undefined){
+                sortedStores.push({id: store.name, name: store.displayName});
                   stores[store.name] = {
                     count: 1,
                     name: store.displayName
                   } 
-                  productTypes[p.SubType].count[store.name] = 1;
-              }else{
-                stores[store.name].count++;
+                }else{
+                  stores[store.name].count++;
+                }
+              if(productTypes[p.SubType].count[store.name]){
                 productTypes[p.SubType].count[store.name]++;
+              }else{
+                productTypes[p.SubType].count[store.name] = 1;
               }
           }
         
@@ -99,13 +105,23 @@ class ProductList extends React.Component {
       });
       let selectedTypes = Object.keys(productTypes).filter( pt => {return productTypes[pt].state});
       let showAllresults = selectedTypes.length > 0 ? false : true; 
+      
+      SortArray(sortedStores,{
+        by: "name"
+      });
+
       stores["0"] = {
         name: "Alle butikker",
         count:  showAllresults ? loadedProducts.length : filteredResultCount
       }
-
+      sortedStores.unshift({
+        name: "Alle butikker",
+        id: "0"
+      });
+      
       this.setState({
         stores: stores,
+        sortedStores: sortedStores,
         selectedStore: stores[this.state.selectedStore] ? this.state.selectedStore : "0" ,
         loadedProducts: loadedProducts,
         productTypes: productTypes,
@@ -113,7 +129,6 @@ class ProductList extends React.Component {
         showAllresults: selectedTypes.length > 0 ? false : true
       });
       this.handleSortChange();
-
     }
 
     hideGraph = () =>{
@@ -146,23 +161,33 @@ class ProductList extends React.Component {
       });      
     }
 
-    handleFilterUpdate = (isSelected, name) => {
+    handleFilterClick = (isSelected, name) => {
       let productTypes = this.state.productTypes;
       productTypes[name].state = isSelected;
-      let showAllresults = true;
-      let productResultCount = 0;
-
+    
       firebase.analytics().logEvent('filter_click', {
         value: productTypes[name]
       });
+      this.updateFilter(this.state.selectedStore, productTypes);
+    }
 
-      let selectedTypes = Object.keys(productTypes).filter( pt => (productTypes[pt].state));
+    updateFilter = (selectedStore, productTypes = this.state.productTypes) => {
+      
+      let showAllresults = true;
+      let productResultCount = 0;
+
+      Object.keys(productTypes).map( pt => {
+          if(!productTypes[pt].count[selectedStore]){
+            productTypes[pt].state = false;
+          }
+      });
+      let selectedTypes = Object.keys(productTypes).filter( pt => (productTypes[pt].state && productTypes[pt].count[selectedStore]));
       
       if(selectedTypes.length > 0){
-        selectedTypes.map( pt => (productResultCount += productTypes[pt].count[this.state.selectedStore]));
+        selectedTypes.map( pt => (productResultCount += productTypes[pt].count[selectedStore]));
         showAllresults = false;
       }else{
-       productResultCount = this.state.loadedProducts.length;
+       productResultCount = this.state.stores[selectedStore].count;
       }
 
       this.setState({
@@ -171,7 +196,8 @@ class ProductList extends React.Component {
         productResultCount: productResultCount,
         page: 1
       });
-    } 
+
+    }
 
     displayProducts = () => {
       let list = [];
@@ -195,15 +221,15 @@ class ProductList extends React.Component {
       let list = [];
       Object.keys(this.state.productTypes).map( ptKey => {
         if(this.state.productTypes[ptKey].count[this.state.selectedStore] > 0) 
-        list.push(<ProductType key={ptKey} store={this.state.selectedStore} handleFilterUpdate={this.handleFilterUpdate.bind(this)} name={ptKey} productType={this.state.productTypes[ptKey]} />)        
+        list.push(<ProductType key={ptKey} store={this.state.selectedStore} handleFilterClick={this.handleFilterClick.bind(this)} name={ptKey} productType={this.state.productTypes[ptKey]} />)        
       });
       return list;
     }
 
     renderStoreOptions = () =>{
         let list = [];
-        Object.keys(this.state.stores).map( id => ( 
-          list.push(<option key={id} value={id} >{this.state.stores[id].name + " (" + this.state.stores[id].count + ")"  }</option>)        
+        this.state.sortedStores.map( store => ( 
+          list.push(<option key={store.id} value={store.id} >{store.name + " (" + this.state.stores[store.id].count + ")"  }</option>)        
         ));
         return list;
     }
@@ -214,11 +240,11 @@ class ProductList extends React.Component {
     }
     
     handleStoreUpdate = (event) => {
-      if(!event) return;      
+      if(!event) return;
       this.setState({
         selectedStore: event.target.value,
-        productResultCount: this.state.stores[event.target.value].count 
       });
+      this.updateFilter(event.target.value);
     }
 
     handleSortChange = (event = undefined) => {

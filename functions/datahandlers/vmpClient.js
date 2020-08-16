@@ -9,12 +9,13 @@ const vmpOptions = {
     json: true // Automatically parses the JSON string in the response
 };
 class VmpClient {
-    static async FetchFreshProducts() {
+    static async FetchFreshProducts(start = 0) {
         var today = new Date();
         let options = vmpOptions;
         options.uri += "details-normal";
         options.qs = {
-            maxResults: 50000,
+            start: start,
+            maxResults: 100,
             changedSince: today.toISOString().slice(0,10)
         };
         console.info(options);
@@ -41,7 +42,7 @@ class VmpClient {
         let options = vmpOptions;
         options.uri += "accumulated-stock";
         options.qs = {
-            changedSince: today.toISOString().slice(0,10)
+           changedSince: today.toISOString().slice(0,10)
         };
         return await rp(options)
         .then(async function (res) {
@@ -102,7 +103,7 @@ class Product{
         this.Country = rawProduct.origins.origin.country;
         this.Type = rawProduct.classification.mainProductTypeName;
         this.SubType = rawProduct.classification.subProductTypeName;
-
+        this.Description =  rawProduct.description;
         this.CurrentPrice = rawProduct.prices[0].salesPrice;
     }
 }

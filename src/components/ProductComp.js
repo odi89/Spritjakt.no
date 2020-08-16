@@ -26,10 +26,9 @@ class ProductComp extends React.Component {
 
     return (
       
-      <li id={product.Id} className={"ProductComp " + (priceIsLower ? "price_lowered" : "price_raised") }>
+      <li id={product.Id} className={"ProductComp " + (priceIsLower ? "price_lowered" : "price_raised") } onClick={() => this.props.setGraph(product.Id, this.productButton)}>
         
-        <button ref={this.productButton} onClick={() => this.props.setGraph(product.Id, this.productButton)}>
-
+            <button style={{padding:0,opacity:0}} ref={this.productButton} onClick={() => this.props.setGraph(product.Id, this.productButton)}></button>
             <div className="product_img" style={background}>
             </div>
             {( showDiff && product.Discount !== "0.0") &&
@@ -47,7 +46,6 @@ class ProductComp extends React.Component {
                   <span className="old_price">Kr. {product.ComparingPrice}</span>
                 }
             </div>
-          </button>
       </li>
       
     );

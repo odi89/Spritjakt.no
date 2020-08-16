@@ -2,7 +2,7 @@ import React from 'react';
 import { ResponsiveLine } from '@nivo/line'
 import './css/priceGraph.css';
 import SortArray from 'sort-array';
-import ProductComp from './ProductComp';
+import HighlightedProduct from './HighlightedProduct';
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -46,7 +46,7 @@ class PriceGraph extends React.Component {
         let maxPrice =  priceSortedByAmount[0]*1.2;
 		return (
             <div className="expandedProduct">
-            <ProductComp product={p} setGraph={() => {}} />
+            <HighlightedProduct product={p} isGraph={false} />
             <a ref={(link) => { this.vmpLink = link; }}  className="clickable" target="_blank" href={"https://www.vinmonopolet.no/p/" + p.Id}>
                 Se hos vinmonopolet <FontAwesomeIcon icon={faExternalLinkAlt} /> 
             </a>

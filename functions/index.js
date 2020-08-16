@@ -28,7 +28,17 @@ const runtimeOpts = {
 
 
 exports.fetchProducts = functions.region('europe-west1').runWith(runtimeOpts).pubsub.schedule('15 6 * * *').timeZone("Europe/Paris").onRun(async (context) => {
-    await FirebaseClient.UpdateProductPrices( await VmpClient.FetchFreshProducts());
+    let fetchProducts = true;
+    let start = 0;
+    while(fetchProducts){
+      let updatedProducts = await VmpClient.FetchFreshProducts(start);
+      await FirebaseClient.UpdateProductPrices(updatedProducts);
+
+      start += updatedProducts.length; 
+      if(updatedProducts.length < 100){
+        fetchProducts = false;
+      } 
+    }
 });
 
 exports.updateStocks = functions.region('europe-west1').runWith(runtimeOpts).pubsub.schedule('15 8 * * *').timeZone("Europe/Paris").onRun(async (context) => {
@@ -107,10 +117,10 @@ exports.GetOnSaleProductsHttp = functions.region('europe-west1').runWith(runtime
                 };
               }
               if(p.Stock.Stores === undefined){
+                p.Stock.stock = p.Stock.Stock
+                delete p.Stock.Stock;
                 p.Stock.Stores = [];
               }
-
-
               productsWithPriceChange.push(p);
             }
           });
@@ -201,6 +211,16 @@ exports.productSearch = functions.region('europe-west1').runWith(runtimeOpts).ht
       if(p.SubType == undefined){
         p.SubType = p.Type;
       }
+      if(p.Stock === undefined){
+        p.Stock = {
+          Stores: []
+        };
+      }
+      if(p.Stock.Stores === undefined){
+        p.Stock.stock = p.Stock.Stock
+        delete p.Stock.Stock;
+        p.Stock.Stores = [];
+      }
       if(p.SearchableName.includes(req.query.searchString.trim())){
         preppedProducts.push(p);
       }
@@ -210,7 +230,7 @@ exports.productSearch = functions.region('europe-west1').runWith(runtimeOpts).ht
   }
 });
 
-exports.StockUpdateListener = functions.database.ref("/StocksToBeFetched/")
+exports.StockUpdateListener = functions.runWith(runtimeOpts).database.ref("/StocksToBeFetched/")
     .onWrite(async (change, context) => {
 
         // Exit when the data is deleted.
@@ -225,7 +245,7 @@ exports.StockUpdateListener = functions.database.ref("/StocksToBeFetched/")
         return null;
       }
 
-      const count = newValue.length > 50 ? 50 : newValue.length;
+      const count = newValue.length > 40 ? 40 : newValue.length;
       console.log(newValue.length);
       for (let i = 0; i < count  ; i++) {
         if(newValue[i] !== undefined){

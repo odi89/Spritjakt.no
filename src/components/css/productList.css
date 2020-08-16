@@ -98,7 +98,6 @@ ul.ProductList {
 
 .stores{
   grid-area: sto;
-  justify-self: center;
 }
 .sorting{
   grid-area: sor;
