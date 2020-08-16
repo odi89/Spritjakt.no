@@ -32,7 +32,7 @@ exports.fetchProducts = functions.region('europe-west1').runWith(runtimeOpts).pu
 });
 
 exports.updateStocks = functions.region('europe-west1').runWith(runtimeOpts).pubsub.schedule('15 8 * * *').timeZone("Europe/Paris").onRun(async (context) => {
-  await FirebaseClient.UpdateStock( await VmpClient.FetchFreshStocks());
+  await FirebaseClient.SetStockUpdateList( await VmpClient.FetchFreshStocks());
 });
 
 exports.GetOnSaleProductsHttp = functions.region('europe-west1').runWith(runtimeOpts).https.onRequest(async (req, res) => {
@@ -100,6 +100,16 @@ exports.GetOnSaleProductsHttp = functions.region('europe-west1').runWith(runtime
               if(p.SubType == undefined){
                 p.SubType = p.Type;
               }
+              
+              if(p.Stock === undefined){
+                p.Stock = {
+                  Stores: []
+                };
+              }
+              if(p.Stock.Stores === undefined){
+                p.Stock.Stores = [];
+              }
+
 
               productsWithPriceChange.push(p);
             }
@@ -111,7 +121,7 @@ exports.GetOnSaleProductsHttp = functions.region('europe-west1').runWith(runtime
     }
   });
 
-exports.keepGetOnSaleProductsHttpAlive = functions.pubsub.schedule('every 5 minutes').timeZone("Europe/Paris").onRun(async (context) => {
+exports.keepGetOnSaleProductsHttpAlive = functions.pubsub.schedule('every 3 minutes').timeZone("Europe/Paris").onRun(async (context) => {
     let options =  {
       uri : "https://europe-west1-spritjakt.cloudfunctions.net/GetOnSaleProductsHttp",
       qs:{
@@ -200,15 +210,30 @@ exports.productSearch = functions.region('europe-west1').runWith(runtimeOpts).ht
   }
 });
 
-exports.StockListener = functions.firestore
-    .document('Products/{productId}')
-    .onUpdate(async (change, context) => {
-      const newValue = change.after.data();
-      const previousValue = change.before.data();
+exports.StockUpdateListener = functions.database.ref("/StocksToBeFetched/")
+    .onWrite(async (change, context) => {
+
+        // Exit when the data is deleted.
+        if (!change.after.exists()) {
+          return null;
+        }
       
-      if(previousValue.Stock === newValue.Stock) return;
+      const newValue = change.after.val();
+      const previousValue = change.before.val();
 
-      newValue.Stock.Stores = await VmpClient.FetchStoreStock(newValue.ProductId);
+      if ( newValue ===  previousValue) {
+        return null;
+      }
 
-      FirebaseClient.UpdateStoreStock(newValue.productId, newValue.Stock );
+      const count = newValue.length > 50 ? 50 : newValue.length;
+      console.log(newValue.length);
+      for (let i = 0; i < count  ; i++) {
+        if(newValue[i] !== undefined){
+            newValue[i].Stores = await VmpClient.FetchStoreStock(newValue[i].productId);
+            await FirebaseClient.UpdateProductStock(newValue[i]);
+        }
+        newValue.splice(i, 1);
+      }
+
+    return await FirebaseClient.SetStockUpdateList(newValue);
     });

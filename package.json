@@ -19,7 +19,7 @@
     "react": "^16.13.1",
     "react-device-detect": "^1.13.1",
     "react-dom": "^16.13.1",
-    "react-scripts": "3.4.1",
+    "react-scripts": "^3.4.3",
     "react-scroll": "^1.8.0",
     "react-transition-group": "^4.4.1",
     "request": "^2.88.2",

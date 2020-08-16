@@ -70,8 +70,8 @@ class VmpClient {
                 pageSize: 1000,
                 currentPage: 0,
                 fields: "BASIC",
-                latitude: 50,
-                longitude: 10,
+                latitude: 50.3,
+                longitude: 10.2,
             },
             jar: true,
             json: true 

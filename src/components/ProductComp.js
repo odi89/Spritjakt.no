@@ -9,14 +9,19 @@ class ProductComp extends React.Component {
       this.productButton = React.createRef();
     }
     render(){
-      var {product, showDiff} = this.props;
+      var {product, showDiff, selectedStore} = this.props;
       var background = {
           backgroundImage: "url(https://bilder.vinmonopolet.no/cache/100x100/" + product.Id + "-1.jpg)",
       };
       var priceIsLower = product.LatestPrice < product.ComparingPrice;
       var lastChangedDate = new Date(product.LastUpdated);
       if(product.Stock){
-        var stock = product.Stock.Stock > 99 ? "99+" : product.Stock.Stock; 
+        var stock = product.Stock.stock > 99 ? "99+" : product.Stock.stock;
+        
+        var store = product.Stock.Stores.find( s => s.name === selectedStore);
+        if(store){
+          stock = store.stockInfo.stockLevel  > 99 ? "99+" : store.stockInfo.stockLevel;
+        }
       }
 
     return (

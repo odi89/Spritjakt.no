@@ -44,7 +44,7 @@ module.exports = class FirebaseClient{
                     }
                 }
             }
-            console.log(await productRef.update(sp));
+            await productRef.update(sp);
         }
     }
 
@@ -61,6 +61,7 @@ module.exports = class FirebaseClient{
     }
 
     static async ProductSearchFireStore(searchString){
+        console.log(searchString);
         let productRef = firebase.firestore().collection('Products').where('SearchableName', '>=', searchString).orderBy('SearchableName').limit(20);
         let snapshot =  await productRef.get();
         let products = [];
@@ -89,30 +90,20 @@ module.exports = class FirebaseClient{
 
     }
 
-    static async UpdateStock(Stocks){
-        if(Stocks){
-            for (let i = 0; i < Stocks.length; i++) {
-                const productRef = firebase.firestore().collection('Products').doc(Stocks[i].ProductId);
-                try{    
-                    await productRef.update({
-                        Stock: {
-                            Stock: Stocks[i].stock
-                        }
-                    });
-                }catch (e) {
-                    console.log("Product with id " + Stocks[i].ProductId + " does not exist");
-                }
-            }
+    static async SetStockUpdateList(Stocks){
+        if(Stocks.length > 0){
+            firebase.database().ref("/StocksToBeFetched/").set(Stocks);
         }
     }
-    static async UpdateStoreStock(productId, stock){
-        const productRef = firebase.firestore().collection('Products').doc(productId);
+    static async UpdateProductStock(stock){
+        const productRef = firebase.firestore().collection('Products').doc(stock.productId);
+        delete stock.productId;
         try{    
           await productRef.update({
               Stock: stock
           });
         }catch (e) {
-          console.log(e);
+          console.log("Product not in database:" + stock.productId);
         }
     }        
 }

@@ -83,6 +83,7 @@ ul.ProductList {
 .nav{
   display: grid;
   grid-template-areas:
+                  "sto sto sto"
                   "fil fil fil"
                   "sor tim tim";
   grid-gap: 5px;
@@ -93,6 +94,11 @@ ul.ProductList {
 .timeSpan{
   grid-area: tim;
   justify-self: end;
+}
+
+.stores{
+  grid-area: sto;
+  justify-self: center;
 }
 .sorting{
   grid-area: sor;
@@ -164,8 +170,9 @@ ul.ProductList {
     }
     .nav{
       grid-template-areas:
-                      "fil fil"
-                      "sor tim";
+                      "sto sto sto"
+                      "fil fil fil"
+                      "sor tim tim";
     }
     .filter legend{
       font-size: 1.5rem;
