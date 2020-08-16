@@ -13,7 +13,6 @@ import * as Scroll from 'react-scroll';
 import {isMobile} from 'react-device-detect';
 import firebase from 'firebase/app';
 import 'firebase/analytics';
-import requestPromise from 'request-promise';
 
 
 class ProductList extends React.Component {
@@ -107,6 +106,7 @@ class ProductList extends React.Component {
 
       this.setState({
         stores: stores,
+        selectedStore: stores[this.state.selectedStore] ? this.state.selectedStore : "0" ,
         loadedProducts: loadedProducts,
         productTypes: productTypes,
         productResultCount: showAllresults ? loadedProducts.length : filteredResultCount,
@@ -159,7 +159,7 @@ class ProductList extends React.Component {
       let selectedTypes = Object.keys(productTypes).filter( pt => (productTypes[pt].state));
       
       if(selectedTypes.length > 0){
-        selectedTypes.map( pt => (productResultCount += productTypes[pt].count));
+        selectedTypes.map( pt => (productResultCount += productTypes[pt].count[this.state.selectedStore]));
         showAllresults = false;
       }else{
        productResultCount = this.state.loadedProducts.length;
