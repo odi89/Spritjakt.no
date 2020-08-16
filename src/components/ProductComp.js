@@ -15,13 +15,14 @@ class ProductComp extends React.Component {
       };
       var priceIsLower = product.LatestPrice < product.ComparingPrice;
       var lastChangedDate = new Date(product.LastUpdated);
-      if(product.Stock){
-        var stock = product.Stock.stock > 99 ? "99+" : product.Stock.stock;
-        
+      var stock;
+      if(product.Stock.Stores.length > 0 && selectedStore !== "0"){
         var store = product.Stock.Stores.find( s => s.name === selectedStore);
-        if(store){
-          stock = store.stockInfo.stockLevel  > 99 ? "99+" : store.stockInfo.stockLevel;
-        }
+        stock = store.stockInfo.stockLevel  > 99 ? "99+" : store.stockInfo.stockLevel;
+      }else if(product.Stock.stock){
+        stock = product.Stock.stock > 99 ? "99+" : product.Stock.stock;
+      }else{
+        stock = 0;
       }
 
     return (
@@ -38,7 +39,7 @@ class ProductComp extends React.Component {
             <div className="product_details">
                 <h2 className="name">{product.Name}</h2>
                 <span className="type">{product.SubType}</span>
-                <span className="stock" title="Lagerstatus" >{product.Stock ? stock : "Må bestilles"} <FontAwesomeIcon icon={faBoxes} /></span>
+                <span className="stock" title="Lagerstatus" >{stock} <FontAwesomeIcon icon={faBoxes} /></span>
                 <span className="volume">{product.Volume*100} cl</span>
                 <span className="alcohol">Alk. {product.Alcohol}%</span>
                 <span className="price">Kr. {product.LatestPrice}</span>

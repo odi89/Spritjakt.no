@@ -19,25 +19,21 @@ class ProductComp extends React.Component {
       stores.map( store => (
       list.push(<li key={store.id}><strong>{store.displayName}:</strong> {store.stockInfo.stockLevel} stk</li>)        
       ));
+      if( list.length === 0&& this.props.product.Stock.stock == undefined){
+        list.push(<li key={"0"}><strong>Ikke på lager</strong></li>)
+      }else if(list.length === 0){
+        list.push(<li key={"0"}><strong>Nettbutikk: </strong> {this.props.product.Stock.stock} stk</li>)
+
+      }
       return list;
     } 
 
     render(){
-      var {product, selectedStore} = this.props;
+      var {product} = this.props;
       var background = {
           backgroundImage: "url(https://bilder.vinmonopolet.no/cache/100x100/" + product.Id + "-1.jpg)",
       };
       var priceIsLower = product.LatestPrice < product.ComparingPrice;
-      var lastChangedDate = new Date(product.LastUpdated);
-      if(product.Stock){
-        var stock = product.Stock.stock > 99 ? "99+" : product.Stock.stock;
-        
-        var store = product.Stock.Stores.find( s => s.name === selectedStore);
-        if(store){
-          stock = store.stockInfo.stockLevel  > 99 ? "99+" : store.stockInfo.stockLevel;
-        }
-      }
-
     return (
       
       <div id={product.Id} className={"HighlightedProduct " + (priceIsLower ? "price_lowered" : "price_raised") } >
@@ -58,7 +54,8 @@ class ProductComp extends React.Component {
             }
         </div>
         <div className="product_stock">
-          <ul>
+
+        <ul>
           {this.renderStoreStock()}
           </ul>
         </div>

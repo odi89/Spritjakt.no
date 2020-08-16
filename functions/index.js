@@ -235,7 +235,7 @@ exports.StockUpdateListener = functions.region('europe-west1').runWith(runtimeOp
         return null;
       }
 
-      const count = newValue.length > 40 ? 40 : newValue.length;
+      const count = newValue.length > 500 ? 500 : newValue.length;
       console.log(newValue.length);
       for (let i = 0; i < count  ; i++) {
         if(newValue[i] !== undefined){
@@ -256,7 +256,7 @@ exports.StockUpdateListener = functions.region('europe-west1').runWith(runtimeOp
       }
       var remainingProducts = change.after.val();
 
-      var updatedProducts = remainingProducts.splice(0, remainingProducts.length > 50 ? 50 : remainingProducts.length);
+      var updatedProducts = remainingProducts.splice(0, remainingProducts.length > 1000 ? 1000 : remainingProducts.length);
       await FirebaseClient.UpdateProductPrices(updatedProducts);
 
       return await FirebaseClient.SetProductUpdateList(remainingProducts);
