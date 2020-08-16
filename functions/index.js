@@ -28,17 +28,7 @@ const runtimeOpts = {
 
 
 exports.fetchProducts = functions.region('europe-west1').runWith(runtimeOpts).pubsub.schedule('15 6 * * *').timeZone("Europe/Paris").onRun(async (context) => {
-    let fetchProducts = true;
-    let start = 0;
-    while(fetchProducts){
-      let updatedProducts = await VmpClient.FetchFreshProducts(start);
-      await FirebaseClient.UpdateProductPrices(updatedProducts);
-
-      start += updatedProducts.length; 
-      if(updatedProducts.length < 100){
-        fetchProducts = false;
-      } 
-    }
+    await FirebaseClient.SetProductUpdateList( await VmpClient.FetchFreshProducts());
 });
 
 exports.updateStocks = functions.region('europe-west1').runWith(runtimeOpts).pubsub.schedule('15 8 * * *').timeZone("Europe/Paris").onRun(async (context) => {
@@ -230,7 +220,7 @@ exports.productSearch = functions.region('europe-west1').runWith(runtimeOpts).ht
   }
 });
 
-exports.StockUpdateListener = functions.runWith(runtimeOpts).database.ref("/StocksToBeFetched/")
+exports.StockUpdateListener = functions.region('europe-west1').runWith(runtimeOpts).database.ref("/StocksToBeFetched/")
     .onWrite(async (change, context) => {
 
         // Exit when the data is deleted.
@@ -256,4 +246,18 @@ exports.StockUpdateListener = functions.runWith(runtimeOpts).database.ref("/Stoc
       }
 
     return await FirebaseClient.SetStockUpdateList(newValue);
+    });
+
+    exports.ProductUpdateListener = functions.region('europe-west1').runWith(runtimeOpts).database.ref("/ProductsToBeUpdated/")
+    .onWrite(async (change, context) => {
+        // Exit when the data is deleted.
+        if (!change.after.exists()) {
+        return null;
+      }
+      var remainingProducts = change.after.val();
+
+      var updatedProducts = remainingProducts.splice(0, remainingProducts.length > 50 ? 50 : remainingProducts.length);
+      await FirebaseClient.UpdateProductPrices(updatedProducts);
+
+      return await FirebaseClient.SetProductUpdateList(remainingProducts);
     });

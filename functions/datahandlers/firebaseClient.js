@@ -4,7 +4,7 @@ require("firebase/firestore");
 
 module.exports = class FirebaseClient{
 
-    static async UpdateProductPrices(UpdatedProducts){
+    static async UpdateProductPrices(updatedProducts){
 
         let d = new Date();
         d.setDate(d.getDate()-1);
@@ -14,10 +14,10 @@ module.exports = class FirebaseClient{
         d.setMilliseconds(0);
         var today = d.getTime();
 
-        this.UpdateWriteTime(UpdatedProducts.length);
-        for (let i = 0; i < UpdatedProducts.length; i++) {
+        this.UpdateWriteTime(updatedProducts.length);
+        for (let i = 0; i < updatedProducts.length; i++) {
 
-            const p = UpdatedProducts[i];
+            const p = updatedProducts[i];
 
             const productRef = firebase.firestore().collection('Products').doc(p.Id);
             const productDoc = await productRef.get();
@@ -45,7 +45,7 @@ module.exports = class FirebaseClient{
             sp.Description = p.Description;
             await productRef.update(sp);
         }
-        console.log(UpdatedProducts.length);
+        console.log(updatedProducts.length);
     }
 
     static async FetchOnSaleProductsFireStore(UpdateTime){
@@ -93,6 +93,11 @@ module.exports = class FirebaseClient{
     static async SetStockUpdateList(Stocks){
         firebase.database().ref("/StocksToBeFetched/").set(Stocks);
     }
+
+    static async SetProductUpdateList(Products){
+        firebase.database().ref("/ProductsToBeUpdated/").set(Products);
+    }
+    
     static async UpdateProductStock(stock){
         const productRef = firebase.firestore().collection('Products').doc(stock.productId);
         delete stock.productId;

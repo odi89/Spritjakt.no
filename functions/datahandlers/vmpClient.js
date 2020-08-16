@@ -9,13 +9,11 @@ const vmpOptions = {
     json: true // Automatically parses the JSON string in the response
 };
 class VmpClient {
-    static async FetchFreshProducts(start = 0) {
+    static async FetchFreshProducts() {
         var today = new Date();
         let options = vmpOptions;
         options.uri += "details-normal";
         options.qs = {
-            start: start,
-            maxResults: 100,
             changedSince: today.toISOString().slice(0,10)
         };
         console.info(options);
