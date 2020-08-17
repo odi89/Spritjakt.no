@@ -7,6 +7,7 @@
     position: relative;
     transition: 0.2s 0.05s;
     text-align: left;
+    overflow: hidden;
   }
 li.ProductComp:hover, .ProductComp:focus-within{
     box-shadow: 1px 1px 4px rgba(0,0,0,.3);
@@ -92,7 +93,10 @@ span.change_time {
     color: black;
     text-decoration: none;
 }
-
+.ProductComp span.description {
+    position: absolute;
+    top: 100%;
+}
 
 .ProductComp .percentage_change {
     position: absolute;

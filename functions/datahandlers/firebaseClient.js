@@ -1,6 +1,7 @@
 const SortArray = require('sort-array');
 const firebase = require('firebase-admin');
 require("firebase/firestore");
+const allTimeEarliestDate = new Date(1594166400000);
 
 module.exports = class FirebaseClient{
 
@@ -25,6 +26,7 @@ module.exports = class FirebaseClient{
             if(sp === undefined){
                 p.PriceHistory = {[today]: p.CurrentPrice};                    
                 delete p.CurrentPrice;
+                p.LastUpdated = allTimeEarliestDate.getTime() - 1000;
                 sp = p;
                 continue;
             }

@@ -9,7 +9,7 @@ class ProductComp extends React.Component {
       this.productButton = React.createRef();
     }
     render(){
-      var {product, showDiff, selectedStore} = this.props;
+      var {product, showDiff, selectedStore = "0" } = this.props;
       var background = {
           backgroundImage: "url(https://bilder.vinmonopolet.no/cache/100x100/" + product.Id + "-1.jpg)",
       };
@@ -45,6 +45,13 @@ class ProductComp extends React.Component {
                 <span className="price">Kr. {product.LatestPrice}</span>
                 { showDiff &&
                   <span className="old_price">Kr. {product.ComparingPrice}</span>
+                }
+                {product.Description &&
+                <span className="description" >
+                <p className="colour"><span>Farge</span> {product.Description.characteristics.colour}</p>
+                <p className="odour"><span>Lukt</span> {product.Description.characteristics.odour}</p>
+                <p className="taste"><span>Smak</span> {product.Description.characteristics.taste}</p>
+                </span>
                 }
             </div>
       </li>

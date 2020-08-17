@@ -8,7 +8,6 @@
     flex-wrap: wrap;
   }
 
-
 .HighlightedProduct .product_img {
     min-height: 200px;
     background-repeat: no-repeat;
@@ -25,7 +24,7 @@
 .HighlightedProduct .product_stock {
     width: 100%;
     text-align: center;
-    background: rgba(0,0,0,.1);
+    background: rgba(0,0,0,.08);
     border-radius: 3px;
 }
 .HighlightedProduct .product_stock li {
@@ -35,7 +34,6 @@
     margin: 0.25rem;
     border-radius: 3px;
     background: rgba(255,255,255,.8);
-    border-bottom: 1px solid rgba(0,0,0,.2);
     display: flex;
     justify-content: space-between;
 }

@@ -14,6 +14,7 @@ class VmpClient {
         let options = vmpOptions;
         options.uri += "details-normal";
         options.qs = {
+            maxResults: 50000,
             changedSince: today.toISOString().slice(0,10)
         };
         console.info(options);
@@ -40,7 +41,8 @@ class VmpClient {
         let options = vmpOptions;
         options.uri += "accumulated-stock";
         options.qs = {
-           changedSince: today.toISOString().slice(0,10)
+          changedSince: today.toISOString().slice(0,10),
+          maxResults: 55000
         };
         return await rp(options)
         .then(async function (res) {
