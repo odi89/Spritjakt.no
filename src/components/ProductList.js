@@ -245,6 +245,9 @@ class ProductList extends React.Component {
         selectedStore: event.target.value,
       });
       this.updateFilter(event.target.value);
+      firebase.analytics().logEvent('Store_Change', {
+        value: this.state.stores[event.target.value].displayName
+      });
     }
 
     handleSortChange = (event = undefined) => {
