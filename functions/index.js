@@ -32,7 +32,24 @@ exports.fetchProducts = functions.region('europe-west1').runWith(runtimeOpts).pu
 });
 
 exports.updateStocks = functions.region('europe-west1').runWith(runtimeOpts).pubsub.schedule('15 8 * * *').timeZone("Europe/Paris").onRun(async (context) => {
-  await FirebaseClient.SetStockUpdateList( await VmpClient.FetchFreshStocks());
+  let moreStocksToFetch = true;
+  let freshStocks = [];
+  let tries = 0;
+  while(moreStocksToFetch && tries < 10 ){
+     
+    let {totalCount, stocks} = await VmpClient.FetchFreshStocks(freshStocks.length);
+ 
+    freshStocks = freshStocks.concat(stocks);
+    console.info("freshStocks: " + freshStocks.length);
+
+    if(totalCount === freshStocks.length || stocks.length === 0){
+      moreStocksToFetch = false;
+    }
+    tries++;
+  }
+  if(freshStocks.length > 0){
+    await FirebaseClient.SetStockUpdateList(freshStocks);
+  }
 });
 
 exports.GetOnSaleProductsHttp = functions.region('europe-west1').runWith(runtimeOpts).https.onRequest(async (req, res) => {
@@ -229,17 +246,12 @@ exports.StockUpdateListener = functions.region('europe-west1').runWith(runtimeOp
         }
       
       const newValue = change.after.val();
-      const previousValue = change.before.val();
-
-      if ( newValue ===  previousValue) {
-        return null;
-      }
 
       const count = newValue.length > 500 ? 500 : newValue.length;
       console.log(newValue.length);
       for (let i = 0; i < count  ; i++) {
         if(newValue[i] !== undefined){
-            newValue[i].Stores = await VmpClient.FetchStoreStock(newValue[i].productId);
+          newValue[i].Stores = await VmpClient.FetchStoreStock(newValue[i].productId);
             await FirebaseClient.UpdateProductStock(newValue[i]);
         }
         newValue.splice(i, 1);

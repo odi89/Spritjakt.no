@@ -1,6 +1,7 @@
 const SortArray = require('sort-array');
 const firebase = require('firebase-admin');
 require("firebase/firestore");
+const VmpClient = require( "./vmpClient");
 const allTimeEarliestDate = new Date(1594166400000);
 
 module.exports = class FirebaseClient{
@@ -102,14 +103,11 @@ module.exports = class FirebaseClient{
     
     static async UpdateProductStock(stock){
         const productRef = firebase.firestore().collection('Products').doc(stock.productId);
-        delete stock.productId;
-        try{    
-          await productRef.update({
-              Stock: stock
-          });
-        }catch (e) {
-          console.log("Product not in database:" + stock.productId);
-        }
+        console.log("Updating Stock " + stock.productId);
+        await productRef.update({
+            Stock: stock
+        }).catch();
+
     }        
 }
 

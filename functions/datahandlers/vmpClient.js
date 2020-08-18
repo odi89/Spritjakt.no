@@ -1,20 +1,20 @@
 const rp = require( 'request-promise');
 const config = require( '../configs/vmp.json');
-const vmpOptions = {
+const vmpOptions = () => { return {
     uri: config.url,
     headers: {
         'User-Agent': 'Request-Promise',
         'Ocp-Apim-Subscription-Key': config.apiKey
     },
     json: true // Automatically parses the JSON string in the response
-};
+    }
+}
 class VmpClient {
     static async FetchFreshProducts() {
         var today = new Date();
-        let options = vmpOptions;
+        let options = vmpOptions();
         options.uri += "details-normal";
         options.qs = {
-            maxResults: 50000,
             changedSince: today.toISOString().slice(0,10)
         };
         console.info(options);
@@ -36,32 +36,33 @@ class VmpClient {
             console.error("vmp fetch failed: " + err);
         });
     }
-    static async FetchFreshStocks() {
+    static async FetchFreshStocks(start) {
         var today = new Date();
-        let options = vmpOptions;
+        let options = vmpOptions();
+        
         options.uri += "accumulated-stock";
+        options.resolveWithFullResponse = true;
         options.qs = {
+          maxResults: 5000,
           changedSince: today.toISOString().slice(0,10),
-          maxResults: 55000
+          start: start
         };
         return await rp(options)
-        .then(async function (res) {
-
+        .then(function (res) {
             var items = [];
-            console.log(res.length);
-            for (let i = 0; i < res.length; i++) {
-                const p = res[i];
-                delete p.StoresWithStock;
+            for (let i = 0; i < res.body.length; i++) {
+                const p = res.body[i];
+                delete p.numberOfStoresWithStock;
                 delete p.updatedDate;
                 delete p.updatedTime;
                 items.push(p);
             }
-            
-            console.info("Fetched stock");
-            return items;
+            return { totalCount: parseInt(res.headers["x-total-count"]), stocks: items}
+
         })
         .catch(function (err) {
             console.error("vmp fetch failed: " + err);
+            return [];
         });
     }
     static async FetchStoreStock(productId) {
