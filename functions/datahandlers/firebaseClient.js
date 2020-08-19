@@ -45,7 +45,9 @@ module.exports = class FirebaseClient{
                 }
             }
             sp.SearchableName = p.SearchableName;
+            sp.SearchWords = p.SearchWords;
             sp.Description = p.Description;
+            console.log(i);
             await productRef.update(sp);
         }
         console.log(updatedProducts.length);
@@ -66,6 +68,18 @@ module.exports = class FirebaseClient{
     static async ProductSearchFireStore(searchString){
         console.log(searchString);
         let productRef = firebase.firestore().collection('Products').where('SearchableName', '>=', searchString).orderBy('SearchableName').limit(20);
+        let snapshot =  await productRef.get();
+        let products = [];
+        if (!snapshot.empty) {
+            snapshot.forEach(p => {       
+                products.push(p.data());
+            });
+        }
+        return products;
+    }
+    
+    static async ProductSearchAdvanced(searchStrings){
+        let productRef = firebase.firestore().collection('Products').where('SearchWords', 'array-contains-any', searchStrings).orderBy('SearchableName');
         let snapshot =  await productRef.get();
         let products = [];
         if (!snapshot.empty) {
@@ -97,17 +111,16 @@ module.exports = class FirebaseClient{
         firebase.database().ref("/StocksToBeFetched/").set(Stocks);
     }
 
-    static async SetProductUpdateList(Products){
-        firebase.database().ref("/ProductsToBeUpdated/").set(Products);
-    }
-    
     static async UpdateProductStock(stock){
         const productRef = firebase.firestore().collection('Products').doc(stock.productId);
-        console.log("Updating Stock " + stock.productId);
-        await productRef.update({
-            Stock: stock
-        }).catch();
-
+        try{
+            console.log("Updating Stock " + stock.productId);
+            await productRef.update({
+                Stock: stock
+            });
+        }catch (e) {
+            console.log("Product not in database:" + stock.productId);
+        }
     }        
 }
 

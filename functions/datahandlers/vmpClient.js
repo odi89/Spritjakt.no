@@ -15,7 +15,8 @@ class VmpClient {
         let options = vmpOptions();
         options.uri += "details-normal";
         options.qs = {
-            changedSince: today.toISOString().slice(0,10)
+         changedSince: today.toISOString().slice(0,10),
+          maxResults: 30000
         };
         console.info(options);
         return await rp(options)
@@ -106,6 +107,7 @@ class Product{
         this.SubType = rawProduct.classification.subProductTypeName;
         this.Description =  rawProduct.description;
         this.CurrentPrice = rawProduct.prices[0].salesPrice;
+        this.SearchWords = rawProduct.basic.productLongName.toLowerCase().split(" ");
     }
 }
 

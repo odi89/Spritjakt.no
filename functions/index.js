@@ -28,7 +28,7 @@ const runtimeOpts = {
 
 
 exports.fetchProducts = functions.region('europe-west1').runWith(runtimeOpts).pubsub.schedule('15 6 * * *').timeZone("Europe/Paris").onRun(async (context) => {
-    await FirebaseClient.SetProductUpdateList( await VmpClient.FetchFreshProducts());
+    await FirebaseClient.UpdateProductPrices(await VmpClient.FetchFreshProducts());
 });
 
 exports.updateStocks = functions.region('europe-west1').runWith(runtimeOpts).pubsub.schedule('15 8 * * *').timeZone("Europe/Paris").onRun(async (context) => {
@@ -237,6 +237,98 @@ exports.productSearch = functions.region('europe-west1').runWith(runtimeOpts).ht
   }
 });
 
+exports.productSearchAdvanced = functions.region('europe-west1').runWith(runtimeOpts).https.onRequest(async (req, res) => {
+
+  res.set('Access-Control-Allow-Origin', '*');
+
+  if (req.method === 'OPTIONS') {
+    // Send response to OPTIONS requests
+    res.set('Access-Control-Allow-Methods', 'GET');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.set('Access-Control-Max-Age', '3600');
+    res.status(204).send('');
+  }else{
+    if(req.query.pingCall){
+      return res.send("It lives another day...");
+    }else{
+    if(req.query.searchString === undefined || req.query.searchString.trim().length === 0){
+      return res.status(400).send();
+      }
+    }
+    searchString = req.query.searchString.toLowerCase();
+    let stringList = searchString.split(" ").filter(s => s.length > 1);
+    var products = await FirebaseClient.ProductSearchAdvanced(stringList);
+
+    let matchingProducts = [];
+    Object.keys(products).forEach(id => {
+      let p = products[id];
+
+      let nameList = p.Name.toLowerCase().split(" ").filter(s => s.length > 1);
+
+      p.numberOfMatches = 0;
+      for( i in stringList){
+        
+        if(nameList.includes(stringList[i])){
+          p.numberOfMatches++;
+          if( i !== 0 && nameList.includes(stringList[i-1])){
+            p.numberOfMatches++;
+          }
+        }
+        if(nameList[i] === stringList[i]){
+          p.numberOfMatches++;
+        }
+      }
+      matchingProducts.push(p);
+    });
+
+    SortArray(matchingProducts, {
+      by: ["numberOfMatches", "Name"],
+      order: "desc"
+    });
+    matchingProducts = matchingProducts.splice(0,20);
+
+    matchingProducts.map(p => {
+
+      p.PriceHistorySorted = SortArray(Object.keys(p.PriceHistory), {order: "desc"});
+      
+      p.LatestPrice = p.PriceHistory[p.PriceHistorySorted[0]];
+
+      let priceHistorySortedAndFiltered = p.PriceHistorySorted.filter(priceDate => ( priceDate <= allTimeEarliestDate && priceDate !== p.PriceHistorySorted[0]));
+      
+      if(priceHistorySortedAndFiltered.length !== 0 ){
+  
+        let oldestPrice = p.PriceHistory[priceHistorySortedAndFiltered[0]]; 
+        p.ComparingPrice = oldestPrice;
+        p.SortingDiscount = (p.LatestPrice/oldestPrice*100);
+        p.Discount = (p.SortingDiscount - 100).toFixed(1);
+      }else{
+        p.SortingDiscount = 100;
+      }
+
+      if(p.SubType && p.SubType.includes("Brennevin,") ){
+        p.SubType = "Brennevin";
+      }
+      if(p.SubType && p.SubType.includes("Sterkvin, annen")){
+        p.SubType = "Sterkvin";
+      }
+      if(p.SubType == undefined){
+        p.SubType = p.Type;
+      }
+      if(p.Stock === undefined){
+        p.Stock = {
+          Stores: []
+        };
+      }
+      if(p.Stock.Stores === undefined){
+        p.Stock.stock = p.Stock.Stock
+        delete p.Stock.Stock;
+        p.Stock.Stores = [];
+      }
+    });
+
+    return res.send(matchingProducts.splice(0,20));
+  }
+});
 exports.StockUpdateListener = functions.region('europe-west1').runWith(runtimeOpts).database.ref("/StocksToBeFetched/")
     .onWrite(async (change, context) => {
 
