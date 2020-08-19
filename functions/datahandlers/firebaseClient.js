@@ -64,19 +64,6 @@ module.exports = class FirebaseClient{
         }
         return products;
     }
-
-    static async ProductSearchFireStore(searchString){
-        console.log(searchString);
-        let productRef = firebase.firestore().collection('Products').where('SearchableName', '>=', searchString).orderBy('SearchableName').limit(20);
-        let snapshot =  await productRef.get();
-        let products = [];
-        if (!snapshot.empty) {
-            snapshot.forEach(p => {       
-                products.push(p.data());
-            });
-        }
-        return products;
-    }
     
     static async ProductSearchAdvanced(searchStrings){
         let productRef = firebase.firestore().collection('Products').where('SearchWords', 'array-contains-any', searchStrings).orderBy('SearchableName');
