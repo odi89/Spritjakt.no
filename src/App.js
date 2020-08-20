@@ -28,7 +28,7 @@ class App extends React.Component {
         <ProductList />
       </div>
       <footer>
-        Priser og lagerbeholdning oppdateres daglig, hendholdsvis  06:15 og 08:15
+        Priser og lagerbeholdning oppdateres daglig ca kl 07:00
         <br />
         <span>
           Har du tilbakemeldinger eller funnet noe feil?

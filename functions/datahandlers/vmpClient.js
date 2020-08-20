@@ -15,7 +15,7 @@ class VmpClient {
         let options = vmpOptions();
         options.uri += "details-normal";
         options.qs = {
-         changedSince: today.toISOString().slice(0,10),
+          changedSince: today.toISOString().slice(0,10),
           maxResults: 30000
         };
         console.info(options);
@@ -63,7 +63,7 @@ class VmpClient {
         })
         .catch(function (err) {
             console.error("vmp fetch failed: " + err);
-            return [];
+            return { totalCount: 0, stocks: []}
         });
     }
     static async FetchStoreStock(productId) {

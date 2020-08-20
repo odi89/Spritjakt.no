@@ -15,7 +15,7 @@ module.exports = class FirebaseClient{
         d.setSeconds(0);
         d.setMilliseconds(0);
         var today = d.getTime();
-
+        console.log("Products to update: " + updatedProducts.length)
         this.UpdateWriteTime(updatedProducts.length);
         for (let i = 0; i < updatedProducts.length; i++) {
 
@@ -44,9 +44,7 @@ module.exports = class FirebaseClient{
                     sp.PriceHistory[today] = p.CurrentPrice;
                 }
             }
-            sp.SearchableName = p.SearchableName;
-            sp.SearchWords = p.SearchWords;
-            sp.Description = p.Description;
+
             console.log(i);
             await productRef.update(sp);
         }
@@ -94,7 +92,22 @@ module.exports = class FirebaseClient{
 
     }
 
-    static async SetStockUpdateList(Stocks){
+    static async SetStockUpdateList(Stocks, addOnSaleProductsIfMissing = false){
+        if(addOnSaleProductsIfMissing){
+           var products = await this.FetchOnSaleProductsFireStore(allTimeEarliestDate.getTime() + 90000000);
+            products.map(p => {
+                if(!Stocks.find(s => s.productId === p.Id)){
+                    var stock = 0;
+                    if(p.Stock !== undefined){
+                        stock = p.Stock.stock !== undefined ? p.Stock.stock : 0;
+                    }
+                    Stocks.push({
+                        productId: p.Id,
+                        stock: stock
+                    });
+                }
+            });
+        }
         firebase.database().ref("/StocksToBeFetched/").set(Stocks);
     }
 

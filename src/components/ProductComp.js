@@ -15,21 +15,25 @@ class ProductComp extends React.Component {
       };
       var priceIsLower = product.LatestPrice < product.ComparingPrice;
       var lastChangedDate = new Date(product.LastUpdated);
-      var stock;
+      var stock = 0;
       if(product.Stock.Stores.length > 0 && selectedStore !== "0"){
         var store = product.Stock.Stores.find( s => s.name === selectedStore);
         stock = store.stockInfo.stockLevel  > 99 ? "99+" : store.stockInfo.stockLevel;
-      }else if(product.Stock.stock){
+      }
+      else if(product.Stock.Stores.length >= 0){
+        for (const i in product.Stock.Stores) {
+            stock += product.Stock.Stores[i].stockInfo.stockLevel;
+        }
+      }
+      else if(product.Stock.stock){
         stock = product.Stock.stock > 99 ? "99+" : product.Stock.stock;
-      }else{
-        stock = 0;
       }
 
     return (
       
       <li id={product.Id} className={"ProductComp " + (priceIsLower ? "price_lowered" : "price_raised") } onClick={() => this.props.setGraph(product.Id, this.productButton)}>
         
-            <button style={{padding:0,opacity:0}} ref={this.productButton} onClick={() => this.props.setGraph(product.Id, this.productButton)}></button>
+            <button style={{padding:0,opacity:0}} ref={this.productButton} onClick={() => this.props.setGraph(product.Id, this.productButton)}>{product.Name}</button>
             <div className="product_img" style={background}>
             </div>
             {( showDiff && product.Discount !== "0.0") &&

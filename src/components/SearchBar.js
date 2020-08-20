@@ -43,7 +43,7 @@ class SearchBar extends React.Component {
     }
 
    async SearchProducts(searchString) {
-       let loadedProducts = await SpritjaktClient.SearchProducts(searchString.toLowerCase().replace(/[^a-z0-9]/gi,''));
+       let loadedProducts = await SpritjaktClient.SearchProducts(searchString.toLowerCase());
        if(this.state.searchString !== searchString ) return;
        this.setState({
             loading: false,

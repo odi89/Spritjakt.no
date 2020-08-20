@@ -92,15 +92,18 @@ class ProductList extends React.Component {
           }
         
         });
+
+      let selectedStore = stores[this.state.selectedStore] ? this.state.selectedStore : "0"
+
       //Removing product types that are no longer present
       let filteredResultCount = 0;
       Object.keys(productTypes).forEach(ptkey => {
       
-        if(productTypes[ptkey].count === 0){
+        if(productTypes[ptkey].count["0"] === 0){
            delete productTypes[ptkey]
         }
         else if(productTypes[ptkey].state){
-          filteredResultCount += productTypes[ptkey].count;
+          filteredResultCount += productTypes[ptkey].count["0"];
         }
       });
       let selectedTypes = Object.keys(productTypes).filter( pt => {return productTypes[pt].state});
@@ -112,7 +115,7 @@ class ProductList extends React.Component {
 
       stores["0"] = {
         name: "Alle butikker",
-        count:  showAllresults ? loadedProducts.length : filteredResultCount
+        count: loadedProducts.length
       }
       sortedStores.unshift({
         name: "Alle butikker",
@@ -122,7 +125,7 @@ class ProductList extends React.Component {
       this.setState({
         stores: stores,
         sortedStores: sortedStores,
-        selectedStore: stores[this.state.selectedStore] ? this.state.selectedStore : "0" ,
+        selectedStore: selectedStore ,
         loadedProducts: loadedProducts,
         productTypes: productTypes,
         productResultCount: showAllresults ? loadedProducts.length : filteredResultCount,
@@ -329,10 +332,9 @@ class ProductList extends React.Component {
           <div className="timeSpan">
             <label htmlFor="timespan">Tidsperiode</label><br />
             <select id="timespan" value={this.state.timeSpan} onChange={this.changeTimeSpan}>
-                <option value='7days' >Siste 7 dager</option>
                 <option value='14days' >Siste 14 dager</option>
                 <option value='30days' >Siste 30 dager</option>
-                <option value='90days' >Siste 90  dager</option>
+                <option value='90days' >Siste 90 dager</option>
             </select>
           </div>
         </div>

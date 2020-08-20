@@ -5,7 +5,7 @@ class SpritjaktClient{
     static async FetchProducts(timeSpan){
 
         let options =  {
-            uri : "https://europe-west1-spritjakt.cloudfunctions.net/GetOnSaleProductsHttp",
+            uri : "https://europe-west1-spritjakt.cloudfunctions.net/getOnSaleProductsHttp",
             qs:{
                timeSpan: timeSpan            
             },
@@ -24,7 +24,7 @@ class SpritjaktClient{
     static async SearchProducts(searchString){
 
         let options =  {
-            uri : "https://europe-west1-spritjakt.cloudfunctions.net/productSearch",
+            uri : "https://europe-west1-spritjakt.cloudfunctions.net/productSearchAdvanced",
             qs:{
                 searchString: searchString,
             },

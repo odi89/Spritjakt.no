@@ -47,7 +47,7 @@ class PriceGraph extends React.Component {
 		return (
             <div className="expandedProduct">
             <HighlightedProduct product={p} isGraph={false} />
-            <a ref={(link) => { this.vmpLink = link; }}  className="clickable" target="_blank" href={"https://www.vinmonopolet.no/p/" + p.Id}>
+            <a rel="noreferrer" ref={(link) => { this.vmpLink = link; }}  className="clickable" target="_blank" href={"https://www.vinmonopolet.no/p/" + p.Id}>
                 Se hos vinmonopolet <FontAwesomeIcon icon={faExternalLinkAlt} /> 
             </a>
             <h3 className="title"> Prishistorikk</h3>

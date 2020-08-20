@@ -31,7 +31,7 @@ exports.fetchProducts = functions.region('europe-west1').runWith(runtimeOpts).pu
     await FirebaseClient.UpdateProductPrices(await VmpClient.FetchFreshProducts());
 });
 
-exports.updateStocks = functions.region('europe-west1').runWith(runtimeOpts).pubsub.schedule('15 8 * * *').timeZone("Europe/Paris").onRun(async (context) => {
+exports.fetchStocks = functions.region('europe-west1').runWith(runtimeOpts).pubsub.schedule('30 6 * * *').timeZone("Europe/Paris").onRun(async (context) => {
   let moreStocksToFetch = true;
   let freshStocks = [];
   let tries = 0;
@@ -48,11 +48,11 @@ exports.updateStocks = functions.region('europe-west1').runWith(runtimeOpts).pub
     tries++;
   }
   if(freshStocks.length > 0){
-    await FirebaseClient.SetStockUpdateList(freshStocks);
+    await FirebaseClient.SetStockUpdateList(freshStocks, true);
   }
 });
 
-exports.GetOnSaleProductsHttp = functions.region('europe-west1').runWith(runtimeOpts).https.onRequest(async (req, res) => {
+exports.getOnSaleProductsHttp = functions.region('europe-west1').runWith(runtimeOpts).https.onRequest(async (req, res) => {
 
     res.set('Access-Control-Allow-Origin', '*');
 
@@ -154,7 +154,7 @@ exports.keepGetOnSaleProductsHttpAlive = functions.pubsub.schedule('every 3 minu
       console.log(err);
     });
     options =  {
-      uri : "https://europe-west1-spritjakt.cloudfunctions.net/productSearch",
+      uri : "https://europe-west1-spritjakt.cloudfunctions.net/productSearchAdvanced",
       qs:{
         pingCall: true
       },
@@ -261,7 +261,7 @@ exports.productSearchAdvanced = functions.region('europe-west1').runWith(runtime
     return res.send(matchingProducts.splice(0,20));
   }
 });
-exports.StockUpdateListener = functions.region('europe-west1').runWith(runtimeOpts).database.ref("/StocksToBeFetched/")
+exports.stockUpdateListener = functions.region('europe-west1').runWith(runtimeOpts).database.ref("/StocksToBeFetched/")
     .onWrite(async (change, context) => {
 
         // Exit when the data is deleted.
@@ -282,18 +282,4 @@ exports.StockUpdateListener = functions.region('europe-west1').runWith(runtimeOp
       }
 
     return await FirebaseClient.SetStockUpdateList(newValue);
-    });
-
-    exports.ProductUpdateListener = functions.region('europe-west1').runWith(runtimeOpts).database.ref("/ProductsToBeUpdated/")
-    .onWrite(async (change, context) => {
-        // Exit when the data is deleted.
-        if (!change.after.exists()) {
-        return null;
-      }
-      var remainingProducts = change.after.val();
-
-      var updatedProducts = remainingProducts.splice(0, remainingProducts.length > 1000 ? 1000 : remainingProducts.length);
-      await FirebaseClient.UpdateProductPrices(updatedProducts);
-
-      return await FirebaseClient.SetProductUpdateList(remainingProducts);
     });
