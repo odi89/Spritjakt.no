@@ -1,19 +1,20 @@
-.main{
-  padding: 1rem;
-  max-width: 1100px;
-  margin: auto;
+.main {
+    padding: 1rem;
+    max-width: 1100px;
+    margin: auto;
 }
 .main > p {
-  margin: 0 0 1rem 0;
-  text-align: center;
+    margin: 0 0 1rem;
+    text-align: center;
 }
 .before_products {
-  display: flex;
-  justify-content: space-between;
+    display: flex;
+    justify-content: space-between;
 }
-.before_products p, .before_products select {
-  margin: 2.5px 0;
-  font-size: .85rem;
+.before_products p,
+.before_products select {
+    margin: 2.5px 0;
+    font-size: 0.85rem;
 }
 ul.ProductList {
     display: grid;
@@ -21,217 +22,208 @@ ul.ProductList {
     grid-template-columns: 1fr 1fr 1fr 1fr;
     padding: 0;
     min-height: 150px;
-  }
-
-.toggle{
-  opacity: 0;
-  transition: 0.2s;
 }
-.toggle.enter-done{
-  opacity: 1;
+
+.toggle {
+    opacity: 0;
+    transition: 0.2s;
+}
+.toggle.enter-done {
+    opacity: 1;
 }
 
 .priceGraphWrapper {
-  position: fixed;
-  left: 0;
-  right: 0;
-  margin: auto;
-  top: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  z-index: 100;
+    position: fixed;
+    left: 0;
+    right: 0;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    z-index: 100;
 }
 
 .priceGraphWrapper .backdrop label {
-  text-align: center;
-  display: block;
-  z-index: 999999;
-  color: white;
-  top: 0rem;
-  position: absolute;
-  left: 0;
-  right: 0;
-  font-size: 0.8rem;
+    text-align: center;
+    display: block;
+    z-index: 999999;
+    color: white;
+    top: 0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    font-size: 0.8rem;
 }
 
-.priceGraphWrapper .close{
-  right: 0;
-  text-align: center;
-  margin: auto;
-  z-index: 99999;
-  position: fixed;
-  border-radius: 100%;
-  top: 20px;
-  box-shadow: 1px 1px 3px rgba(0,0,0,.5);
-  cursor: pointer;
-  border: none;
-  height: 1.5rem;
-  width: 1.5rem;
-  left: 0;
+.priceGraphWrapper .close {
+    right: 0;
+    text-align: center;
+    margin: auto;
+    z-index: 99999;
+    position: fixed;
+    border-radius: 100%;
+    top: 20px;
+    box-shadow: 1px 1px 3px rgba(0,0,0,.5);
+    cursor: pointer;
+    border: none;
+    height: 1.5rem;
+    width: 1.5rem;
+    left: 0;
 }
 .priceGraphWrapper .backdrop {
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  height: 100%;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    height: 100%;
 }
 
-.nav{
-  display: grid;
-  grid-template-areas:
-                  "sto sto sto"
-                  "fil fil fil"
-                  "sor tim tim";
-  grid-gap: 5px;
-  align-items: baseline;
-  width: 100%;
+.nav {
+    display: grid;
+    grid-template-areas: "sto sto sto" "fil fil fil" "sor tim tim";
+    grid-gap: 5px;
+    align-items: baseline;
+    width: 100%;
 }
 
-.timeSpan{
-  grid-area: tim;
-  justify-self: end;
+.timeSpan {
+    grid-area: tim;
+    justify-self: end;
 }
 
-.stores{
-  grid-area: sto;
+.stores {
+    grid-area: sto;
 }
-.sorting{
-  grid-area: sor;
-  margin-top: 10px;
+.sorting {
+    grid-area: sor;
+    margin-top: 10px;
 }
 .resetFilter {
-  grid-area: pta;
-  margin-right: 3px;
-  background: rgba(97, 160, 85, .8);
-  border: none;
-  border-radius: 3px;
-  color: white;
-  cursor: pointer;
-  padding: 0.2rem 0.5rem;
-  max-height: unset;
-  height: 100%;
-  align-self: normal;
+    grid-area: pta;
+    margin-right: 3px;
+    background: rgba(97, 160, 85, .8);
+    border: none;
+    border-radius: 3px;
+    color: white;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    max-height: unset;
+    height: 100%;
+    align-self: normal;
 }
-.resetFilter.inactive{
-  opacity: .3;
-  cursor: default;
+.resetFilter.inactive {
+    opacity: 0.3;
+    cursor: default;
 }
 
 .ProductTypes {
-  grid-area: pts;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  grid-gap: 3px;
+    grid-area: pts;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-gap: 3px;
 }
-.filter fieldset{
-  display: contents;
+.filter fieldset {
+    display: contents;
 }
 .filter .toggleFilter {
-  display: none;
+    display: none;
 }
-.filter{
-  grid-area: fil;
-  display: grid;
-  grid-template-areas: "leg leg leg leg leg"
-                       "pta pts pts pts pts"
-                       "pta pts pts pts pts";
-  grid-gap: 5px;
+.filter {
+    grid-area: fil;
+    display: grid;
+    grid-template-areas: "leg leg leg leg leg" "pta pts pts pts pts" "pta pts pts pts pts";
+    grid-gap: 5px;
 }
-.filter legend{
-  grid-area: leg;
+.filter legend {
+    grid-area: leg;
 }
 .filter_backdrop.inactive {
-  display: none;
+    display: none;
 }
-@media (max-width: 1024px){
+@media (max-width: 1024px) {
     ul.ProductList {
-      grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
     }
-  }
-  @media (max-width: 768px){
+}
+@media (max-width: 768px) {
     ul.ProductList {
-      grid-template-columns: 1fr 1fr;
-      grid-gap: 5px;
+        grid-template-columns: 1fr 1fr;
+        grid-gap: 5px;
     }
-    .info{
-      text-align: left;
+    .info {
+        text-align: left;
     }
     .before_products {
-      flex-direction: column-reverse;
+        flex-direction: column-reverse;
 
     }
     .ProductTypes {
-      grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr;
     }
-    .nav{
-      grid-template-areas:
-                      "sto sto sto"
-                      "fil fil fil"
-                      "sor tim tim";
+    .nav {
+        grid-template-areas: "sto sto sto" "fil fil fil" "sor tim tim";
     }
-    .filter legend{
-      font-size: 1.5rem;
+    .filter legend {
+        font-size: 1.5rem;
     }
 
     .filter {
-      position: fixed;
-      width: 78%;
-      transition: 0.2s .05s ease;
-      border-right: 6px solid #92496e;
-      background: white;
-      box-shadow: 1px 2px 4px rgba(0,0,0,.4);
-      padding: 1rem;
-      z-index: 5;
-      bottom: 5rem;
-      top: 1rem;
-      display: flex;
-      flex-direction: column;
-      border-top-right-radius: 2px;
-      border-bottom-right-radius: 2px;
+        position: fixed;
+        width: 78%;
+        transition: 0.2s 0.05s ease;
+        border-right: 6px solid #92496e;
+        background: white;
+        box-shadow: 1px 2px 4px rgba(0,0,0,.4);
+        padding: 1rem;
+        z-index: 5;
+        bottom: 5rem;
+        top: 1rem;
+        display: flex;
+        flex-direction: column;
+        border-top-right-radius: 2px;
+        border-bottom-right-radius: 2px;
     }
 
     .filter .toggleFilter {
-      display: block;
-      content: "Filter";
-      background: #92496e;
-      position: absolute;
-      right: -61px;
-      padding: 0.25rem .5rem 0.25rem 1rem;
-      box-shadow: 2px 2px 3px rgba(0,0,0,.4);
-      color: white;
-      border-top-right-radius: 5px;
-      border-bottom-right-radius: 5px;
-      text-align: center;
-      cursor: pointer;
-      top: 0;
-      border: none;
-      width: 3.6rem;
-      font-size: 1rem;
-  }
-    .filter{
-      right: 100%;
+        display: block;
+        content: "Filter";
+        background: #92496e;
+        position: absolute;
+        right: -61px;
+        padding: 0.25rem 0.5rem 0.25rem 1rem;
+        box-shadow: 2px 2px 3px rgba(0,0,0,.4);
+        color: white;
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+        text-align: center;
+        cursor: pointer;
+        top: 0;
+        border: none;
+        width: 3.6rem;
+        font-size: 1rem;
     }
-    .filter.active{
-      right: 15%;
+    .filter {
+        right: 100%;
+    }
+    .filter.active {
+        right: 15%;
     }
     .filter_backdrop.active {
-      display: block;
-      position: fixed;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      right: 0;
-      background: rgba(0,0,0,.2);
-  }
-    .resetFilter {
-      margin-bottom: 5px;
-      margin-right: 0;
-      width: unset;
-      height: unset;
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: rgba(0,0,0,.2);
     }
-  }
-
+    .resetFilter {
+        margin-bottom: 5px;
+        margin-right: 0;
+        width: unset;
+        height: unset;
+    }
+}

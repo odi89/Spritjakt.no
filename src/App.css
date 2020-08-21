@@ -1,76 +1,76 @@
 
 .App-header {
-  background-color: #49908d;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  padding: 1rem;
-  border-bottom: 3px solid #1f2b33;
+    background-color: #49908d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 1rem;
+    border-bottom: 3px solid #1f2b33;
 }
 
-.App-header h1{
-  margin: 1rem auto;
-  display: flex;
-  justify-content: center;
+.App-header h1 {
+    margin: 1rem auto;
+    display: flex;
+    justify-content: center;
 }
 
-.logo{
-  overflow: visible;
-  margin-top: -4rem;
-  margin-bottom: 2rem;
-  transform: scale(0.75);
-  margin-right: 10px;
+.logo {
+    overflow: visible;
+    margin-top: -4rem;
+    margin-bottom: 2rem;
+    transform: scale(0.75);
+    margin-right: 10px;
 }
 .App-header > a {
-  cursor: pointer;
+    cursor: pointer;
+}
+@media (max-width: 768px) {
+    .logo {
+        transform: scale(0.5);
+        margin-top: -5rem;
+        margin-bottom: 0;
+    }
 }
 
-@media (max-width: 768px){
-  .logo{
-    transform: scale(0.5);
-    margin-top: -5rem;
-    margin-bottom: 0rem;
-  }
-}
-
-.App-header p{
-  margin: 0 0 0.5rem 0;
-  font-size: 0.9rem;
-  text-align: center;
-  font-weight: 400;
+.App-header p {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    text-align: center;
+    font-weight: 400;
 }
 .Body {
-  min-height: 70vh;
+    min-height: 70vh;
 }
 footer {
-  margin: 0 auto;
-  text-align: center;
-  padding: 1rem;
+    margin: 0 auto;
+    text-align: center;
+    padding: 1rem;
 }
-footer span{
-  display: block;
-  padding: 1rem 0;
+footer span {
+    display: block;
+    padding: 1rem 0;
 }
-.clickable:hover{
-  opacity: 0.7;
+.clickable:hover {
+    opacity: 0.7;
 }
 .clickable {
-  transition: 0.1s 0.05s;
-  border-radius: 3px;
-  text-align: center;
-  border:none;
-  padding: 0.2rem 0.5rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: 400;
-  font-size: 0.85rem;
-  cursor: pointer;
-  max-height: 1.2rem;
+    transition: 0.1s 0.05s;
+    border-radius: 3px;
+    text-align: center;
+    border: none;
+    padding: 0.2rem 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 400;
+    font-size: 0.85rem;
+    cursor: pointer;
+    max-height: 1.2rem;
 }
-
-button:focus, .clickable:focus, select:focus{
-  outline-style: auto;    
+.clickable:focus,
+button:focus,
+select:focus {
+    outline-style: auto;
 }

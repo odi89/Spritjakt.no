@@ -1,16 +1,16 @@
 nav.Pagination ul li {
     list-style: none;
-    margin-right: .5rem;
+    margin-right: 0.5rem;
 }
-nav.Pagination .pageButton{
-    padding: .8rem;
+nav.Pagination .pageButton {
+    padding: 0.8rem;
     background: #e3e3e3;
 }
-nav.Pagination .pageButton.active{
+nav.Pagination .pageButton.active {
     background: #d0b55e;
     color: white;
 }
-nav.Pagination{
+nav.Pagination {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
@@ -21,5 +21,5 @@ nav.Pagination span {
 nav.Pagination ul {
     padding: 0;
     display: flex;
-    margin: 1.5rem 0 0 0;
+    margin: 1.5rem 0 0;
 }

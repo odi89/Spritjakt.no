@@ -8,19 +8,20 @@
     transition: 0.2s 0.05s;
     text-align: left;
     overflow: hidden;
-  }
-li.ProductComp:hover, .ProductComp:focus-within{
+}
+.ProductComp:focus-within,
+li.ProductComp:hover {
     box-shadow: 1px 1px 4px rgba(0,0,0,.3);
 }
-li.ProductComp:focus-within{
+li.ProductComp:focus-within {
     outline: 1px auto black;
 }
 
-li.ProductComp > button{
+li.ProductComp > button {
     cursor: pointer;
     width: 100%;
     background: none;
-    border:none;
+    border: none;
     outline: none;
 }
 
@@ -33,11 +34,7 @@ li.ProductComp > button{
 
 .ProductComp .product_details {
     display: grid;
-    grid-template-areas: 
-                        "typ sto"
-                         "nam nam"
-                         "pri alk"
-                         "opr vol";
+    grid-template-areas: "typ sto" "nam nam" "pri alk" "opr vol";
 }
 span.change_time {
     position: absolute;
@@ -55,7 +52,7 @@ span.change_time {
 }
 .ProductComp .type {
     grid-area: typ;
-    border-bottom: .5px solid black;
+    border-bottom: 0.5px solid black;
     padding: 0.2rem;
     text-transform: uppercase;
     font-size: 0.8rem;
@@ -63,12 +60,12 @@ span.change_time {
 }
 .ProductComp .stock {
     grid-area: sto;
-    border-bottom: .5px solid black;
+    border-bottom: 0.5px solid black;
     padding: 0.2rem;
     font-size: 0.8rem;
     text-align: right;
 }
-.ProductComp .stock svg{
+.ProductComp .stock svg {
     opacity: 0.5;
 }
 .ProductComp .price {
@@ -76,7 +73,7 @@ span.change_time {
     font-size: 1.2rem;
     align-self: end;
     text-align: left;
-}  
+}
 .ProductComp .old_price {
     grid-area: opr;
     align-self: end;
@@ -84,11 +81,11 @@ span.change_time {
 }
 .ProductComp .name {
     grid-area: nam;
-    margin: .25rem 0;
+    margin: 0.25rem 0;
     font-size: 1rem;
     text-align: left;
     min-height: 3rem;
-} 
+}
 .ProductComp a {
     color: black;
     text-decoration: none;

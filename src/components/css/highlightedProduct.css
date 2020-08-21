@@ -6,7 +6,7 @@
     transition: 0.2s 0.05s;
     display: flex;
     flex-wrap: wrap;
-  }
+}
 
 .HighlightedProduct .product_img {
     min-height: 200px;
@@ -15,8 +15,8 @@
     background-size: contain;
     width: 30%;
 }
-.HighlightedProduct ul{
-    padding:.2rem;
+.HighlightedProduct ul {
+    padding: 0.2rem;
     max-height: 7rem;
     overflow-x: hidden;
     margin: 0;
@@ -42,10 +42,7 @@
     display: grid;
     width: 70%;
     font-size: 0.8rem;
-    grid-template-areas: 
-                         "nam nam"
-                         "pri det"
-                         "des des";
+    grid-template-areas: "nam nam" "pri det" "des des";
 }
 .description span {
     display: block;
@@ -64,13 +61,13 @@
 .HighlightedProduct .stock {
     grid-area: sto;
 }
-.HighlightedProduct .stock svg{
+.HighlightedProduct .stock svg {
     opacity: 0.5;
 }
 .HighlightedProduct .price {
     grid-area: pri;
     font-size: 1.2rem;
-}  
+}
 .HighlightedProduct .old_price {
     grid-area: opr;
 }

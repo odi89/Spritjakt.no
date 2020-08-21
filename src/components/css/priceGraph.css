@@ -12,9 +12,9 @@
     border-radius: 5px;
 }
 .fa-external-link-alt {
-    margin-left: .5rem;
+    margin-left: 0.5rem;
 }
-.expandedProduct .title{
+.expandedProduct .title {
     margin-bottom: 0;
 }
 .expandedProduct .graph {
@@ -22,7 +22,8 @@
     max-height: 30vh;
     grid-area: gra;
 }
-.expandedProduct .ProductComp, .expandedProduct .ProductComp > button{
+.expandedProduct .ProductComp,
+.expandedProduct .ProductComp > button {
     cursor: default;
     box-shadow: none!important;
     outline: none!important;
