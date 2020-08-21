@@ -12,11 +12,7 @@ class Pagination extends React.Component {
 
   renderPageButtons = () => {
     let list = [];
-    for (
-      let i = 1;
-      i <= Math.ceil(this.props.total / this.props.pageSize);
-      i++
-    ) {
+    for (let i = 1; i <= Math.ceil(this.props.total / this.props.pageSize); i++) {
       list.push(
         <PageButton
           key={"page-" + i}
@@ -44,9 +40,7 @@ class Pagination extends React.Component {
       <nav className="Pagination">
         <ul className="pagelist">{this.renderPageButtons()}</ul>
         <span>
-          Viser {productsShowingtext}
-          av {total}
-          produkter
+          Viser {productsShowingtext} av {total} produkter
         </span>
       </nav>
     );

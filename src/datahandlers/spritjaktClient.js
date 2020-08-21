@@ -38,6 +38,20 @@ class SpritjaktClient {
       });
     return res === undefined ? [] : res;
   }
+  static async FetchStores() {
+    let options = {
+      uri: "https://europe-west1-spritjakt.cloudfunctions.net/getStoresHttp",
+      json: true,
+    };
+    let res = await rp(options)
+      .then(function (res) {
+        return res;
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
+    return res === undefined ? [] : res;
+  }
 }
 
 export default SpritjaktClient;

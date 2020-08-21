@@ -14,7 +14,7 @@ class VmpClient {
   static async FetchFreshProducts() {
     var today = new Date();
     let options = vmpOptions();
-    options.uri += "details-normal";
+    options.uri += "products/v0/details-normal";
     options.qs = {
       changedSince: today.toISOString().slice(0, 10),
       maxResults: 30000,
@@ -43,7 +43,7 @@ class VmpClient {
     var today = new Date();
     let options = vmpOptions();
 
-    options.uri += "accumulated-stock";
+    options.uri += "products/v0/accumulated-stock";
     options.resolveWithFullResponse = true;
     options.qs = {
       maxResults: 5000,
@@ -89,6 +89,25 @@ class VmpClient {
       })
       .catch(function (err) {
         console.error("Store stock fetch failed: " + err);
+      });
+  }
+  static async FetchStores() {
+    let options = vmpOptions();
+    options.uri += "stores/v0/details";
+    return await rp(options)
+      .then(function (res) {
+        let stores = [];
+        res.map((s) => {
+          stores.push({
+            storeId: s.storeId,
+            storeName: s.storeName,
+            address: s.address,
+          });
+        });
+        return stores;
+      })
+      .catch(function (err) {
+        console.error("Store failed: " + err);
       });
   }
 }

@@ -21,14 +21,13 @@ class ProductComp extends React.Component {
     var stock = 0;
     if (product.Stock.Stores.length > 0 && selectedStore !== "0") {
       var store = product.Stock.Stores.find((s) => s.name === selectedStore);
-      stock =
-        store.stockInfo.stockLevel > 99 ? "99+" : store.stockInfo.stockLevel;
-    } else if (product.Stock.Stores.length >= 0) {
+      stock = store.stockInfo.stockLevel;
+    } else if (product.Stock.Stores.length > 0) {
       for (const i in product.Stock.Stores) {
         stock += product.Stock.Stores[i].stockInfo.stockLevel;
       }
     } else if (product.Stock.stock) {
-      stock = product.Stock.stock > 99 ? "99+" : product.Stock.stock;
+      stock = product.Stock.stock;
     }
 
     return (
@@ -63,7 +62,7 @@ class ProductComp extends React.Component {
           <h2 className="name">{product.Name}</h2>
           <span className="type">{product.SubType}</span>
           <span className="stock" title="Lagerstatus">
-            {stock}
+            {stock + " "}
             <FontAwesomeIcon icon={faBoxes} />
           </span>
           <span className="volume">

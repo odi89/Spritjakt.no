@@ -23,13 +23,7 @@ class ProductComp extends React.Component {
         </li>
       )
     );
-    if (list.length === 0 && this.props.product.Stock.stock == undefined) {
-      list.push(
-        <li key={"0"}>
-          <strong>Ikke på lager</strong>
-        </li>
-      );
-    } else if (list.length === 0) {
+    if (list.length === 0 && this.props.product.Stock.stock) {
       list.push(
         <li key={"0"}>
           <strong>Nettbutikk:</strong>
@@ -37,7 +31,18 @@ class ProductComp extends React.Component {
           stk
         </li>
       );
+    } else if (list.length === 0) {
+      list.push(
+        <li key={"0"}>
+          <strong
+            style={{ display: "block", textAlign: "center", width: "100%" }}
+          >
+            Ikke på lager
+          </strong>
+        </li>
+      );
     }
+
     return list;
   };
 

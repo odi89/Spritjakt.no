@@ -13,15 +13,16 @@ import * as Scroll from "react-scroll";
 import { isMobile } from "react-device-detect";
 import firebase from "firebase/app";
 import "firebase/analytics";
+import StoreSelector from "./StoreSelector";
 
 class ProductList extends React.Component {
   constructor() {
     super();
     this.state = {
       loadedProducts: [],
-      stores: {},
-      sortedStores: [],
-      selectedStore: "0",
+      stores: [],
+      selectedStores: ["0"],
+      selectedCity: null,
       loading: true,
       sort: "SortingDiscount_asc",
       productTypes: {},
@@ -29,7 +30,7 @@ class ProductList extends React.Component {
       highlightedProduct: false,
       graphIsVisible: false,
       timeSpan: "30days",
-      productResultCount: 0,
+      productResult: [],
       page: 1,
       pageSize: 24,
       filterVisibility: false,
@@ -39,16 +40,19 @@ class ProductList extends React.Component {
   }
 
   async componentDidMount() {
-    this.updateProductResults(this.state.timeSpan);
+    this.updateProductResults(this.state.timeSpan, true);
   }
-  async updateProductResults(timeSpan) {
+  async updateProductResults(timeSpan, firstLoad = false) {
+    let stores = this.state.stores;
+    if (firstLoad) {
+      stores = await SpritjaktClient.FetchStores();
+    }
+
     let products = await SpritjaktClient.FetchProducts(timeSpan);
 
     this.setState({ loading: false, page: 1 });
 
     let loadedProducts = [];
-    let stores = {};
-    let sortedStores = [];
     let productTypes = this.state.productTypes;
     Object.keys(productTypes).map(
       (ptkey) =>
@@ -65,7 +69,7 @@ class ProductList extends React.Component {
         productTypes[p.SubType] = {
           state: false,
           count: {
-            ["0"]: 1,
+            ["0"]: 1
           },
         };
       } else {
@@ -74,15 +78,12 @@ class ProductList extends React.Component {
 
       for (const i in p.Stock.Stores) {
         const store = p.Stock.Stores[i];
-        if (stores[store.name] === undefined) {
-          sortedStores.push({ id: store.name, name: store.displayName });
-          stores[store.name] = {
-            count: 1,
-            name: store.displayName,
-          };
-        } else {
-          stores[store.name].count++;
-        }
+
+        stores.map(s => {
+          if (s.storeId === store.name) {
+            s.count = s.count === undefined ? 1 : s.count + 1;
+          }
+        });
         if (productTypes[p.SubType].count[store.name]) {
           productTypes[p.SubType].count[store.name]++;
         } else {
@@ -90,10 +91,6 @@ class ProductList extends React.Component {
         }
       }
     });
-
-    let selectedStore = stores[this.state.selectedStore]
-      ? this.state.selectedStore
-      : "0";
 
     //Removing product types that are no longer present
     let filteredResultCount = 0;
@@ -109,26 +106,16 @@ class ProductList extends React.Component {
     });
     let showAllresults = selectedTypes.length > 0 ? false : true;
 
-    SortArray(sortedStores, { by: "name" });
-
-    stores["0"] = {
-      name: "Alle butikker",
-      count: loadedProducts.length,
-    };
-    sortedStores.unshift({ name: "Alle butikker", id: "0" });
-
     this.setState({
       stores: stores,
-      sortedStores: sortedStores,
-      selectedStore: selectedStore,
       loadedProducts: loadedProducts,
       productTypes: productTypes,
-      productResultCount: showAllresults
-        ? loadedProducts.length
-        : filteredResultCount,
+      productResultCount: showAllresults ? loadedProducts.length : filteredResultCount,
       showAllresults: selectedTypes.length > 0 ? false : true,
+
     });
     this.handleSortChange();
+    this.filterProducts();
   }
 
   hideGraph = () => {
@@ -158,7 +145,6 @@ class ProductList extends React.Component {
     this.setState({
       productTypes: productTypes,
       showAllresults: true,
-      productResultCount: this.state.loadedProducts.length,
     });
   };
 
@@ -166,64 +152,56 @@ class ProductList extends React.Component {
     let productTypes = this.state.productTypes;
     productTypes[name].state = isSelected;
 
-    firebase
-      .analytics()
-      .logEvent("filter_click", { value: productTypes[name] });
-    this.updateFilter(this.state.selectedStore, productTypes);
+    firebase.analytics().logEvent("filter_click", { value: productTypes[name] });
+    this.updateFilter(this.state.selectedStores, productTypes);
   };
 
-  updateFilter = (selectedStore, productTypes = this.state.productTypes) => {
-    let showAllresults = true;
-    let productResultCount = 0;
+  updateFilter = (selectedStores, productTypes = this.state.productTypes) => {
 
     Object.keys(productTypes).map((pt) => {
-      if (!productTypes[pt].count[selectedStore]) {
-        productTypes[pt].state = false;
-      }
+      selectedStores.map(s => {
+        if (!productTypes[pt].count[s]) {
+          productTypes[pt].state = false;
+        }
+      });
     });
-    let selectedTypes = Object.keys(productTypes).filter(
-      (pt) => productTypes[pt].state && productTypes[pt].count[selectedStore]
-    );
-
-    if (selectedTypes.length > 0) {
-      selectedTypes.map(
-        (pt) => (productResultCount += productTypes[pt].count[selectedStore])
-      );
-      showAllresults = false;
-    } else {
-      productResultCount = this.state.stores[selectedStore].count;
-    }
 
     this.setState({
       productTypes: productTypes,
-      showAllresults: showAllresults,
-      productResultCount: productResultCount,
+      showAllresults: Object.keys(productTypes).find(pt => productTypes[pt].state) ? false : true,
       page: 1,
     });
+    this.filterProducts();
   };
+
+  filterProducts = () => {
+    let productTypes = this.state.productTypes;
+    let list = [];
+    for (let i = 0; i < this.state.loadedProducts.length; i++) {
+      const p = this.state.loadedProducts[i];
+      if ((productTypes[p.SubType].state || !Object.keys(productTypes).find(pt => productTypes[pt].state)) &&
+        (this.state.selectedStores.includes("0") || p.Stock.Stores.find((s) => this.state.selectedStores.includes(s.name)))) {
+        list.push(p);
+        productTypes[p.SubType].currentTypeCount++;
+      }
+    }
+    this.setState(
+      {
+        productResult: list,
+        productTypes: productTypes
+      });
+  }
 
   displayProducts = () => {
     let list = [];
     let startPoint = this.state.pageSize * (this.state.page - 1);
     let displayedProducts = 0;
-    for (let i = startPoint; i < this.state.loadedProducts.length; i++) {
+    for (let i = startPoint; i < this.state.productResult.length; i++) {
       const p = this.state.loadedProducts[i];
-      if (
-        displayedProducts < this.state.pageSize &&
-        (this.state.showAllresults ||
-          this.state.productTypes[p.SubType].state) &&
-        (this.state.selectedStore === "0" ||
-          p.Stock.Stores.find((s) => s.name == this.state.selectedStore))
-      ) {
+      if (displayedProducts < this.state.pageSize) {
         displayedProducts++;
         list.push(
-          <ProductComp
-            key={p.Id}
-            showDiff={true}
-            product={p}
-            selectedStore={this.state.selectedStore}
-            setGraph={this.setGraph.bind(this)}
-          />
+          <ProductComp key={p.Id} showDiff={true} product={p} selectedStore={"0"} setGraph={this.setGraph.bind(this)} />
         );
       }
     }
@@ -233,44 +211,22 @@ class ProductList extends React.Component {
   displayProductTypes = () => {
     let list = [];
     Object.keys(this.state.productTypes).map((ptKey) => {
-      if (this.state.productTypes[ptKey].count[this.state.selectedStore] > 0)
+      if (this.state.selectedStores.find(s => (this.state.productTypes[ptKey].count[s] != undefined)))
         list.push(
-          <ProductType
-            key={ptKey}
-            store={this.state.selectedStore}
-            handleFilterClick={this.handleFilterClick.bind(this)}
-            name={ptKey}
-            productType={this.state.productTypes[ptKey]}
+          <ProductType key={ptKey} store={this.state.selectedStore} handleFilterClick={this.handleFilterClick.bind(this)} name={ptKey} productType={this.state.productTypes[ptKey]}
           />
         );
     });
     return list;
   };
-
-  renderStoreOptions = () => {
-    let list = [];
-    this.state.sortedStores.map((store) =>
-      list.push(
-        <option key={store.id} value={store.id}>
-          {store.name + " (" + this.state.stores[store.id].count + ")"}
-        </option>
-      )
-    );
-    return list;
-  };
-
   formatDate = (date) => {
     date.setHours(date.getHours() + 2);
     return date.toISOString().slice(0, 10);
   };
 
-  handleStoreUpdate = (event) => {
-    if (!event) return;
-    this.setState({ selectedStore: event.target.value });
-    this.updateFilter(event.target.value);
-    firebase.analytics().logEvent("Store_Change", {
-      value: this.state.stores[event.target.value].displayName,
-    });
+  handleStoreUpdate = (storeList) => {
+    this.setState({ selectedStores: storeList });
+    this.updateFilter(storeList);
   };
 
   handleSortChange = (event = undefined) => {
@@ -331,8 +287,8 @@ class ProductList extends React.Component {
                 {!this.state.filterVisibility ? (
                   "Filter"
                 ) : (
-                  <FontAwesomeIcon title="Lukk filter" icon={faTimes} />
-                )}
+                    <FontAwesomeIcon title="Lukk filter" icon={faTimes} />
+                  )}
               </button>
               <fieldset disabled={!this.state.filterVisibility && isMobile}>
                 <legend>Filter</legend>
@@ -365,17 +321,9 @@ class ProductList extends React.Component {
                 <option value="LatestPrice_desc">Pris (høy-lav)</option>
               </select>
             </div>
-            <div className="stores">
-              <label htmlFor="stores">Butikk</label>
-              <br />
-              <select
-                id="stores"
-                value={this.state.selectedStore}
-                onChange={this.handleStoreUpdate}
-              >
-                {this.renderStoreOptions()}
-              </select>
-            </div>
+            {this.state.stores.length > 0 &&
+              <StoreSelector handleStoreUpdate={this.handleStoreUpdate.bind(this)} stores={this.state.stores} />
+            }
             <div className="timeSpan">
               <label htmlFor="timespan">Tidsperiode</label>
               <br />
@@ -401,8 +349,8 @@ class ProductList extends React.Component {
           {this.state.loading ? (
             <FontAwesomeIcon icon={faCircleNotch} size="5x" />
           ) : (
-            this.displayProducts()
-          )}
+              this.displayProducts()
+            )}
         </ul>
         {this.state.productResultCount === 0 && this.state.loading === false ? (
           <p
@@ -410,12 +358,7 @@ class ProductList extends React.Component {
               textAlign: " center",
               fontWeight: "bold",
             }}
-          >
-            Her var det ikke noe, gitt :/
-          </p>
-        ) : (
-          ""
-        )}
+          >Her var det ikke noe, gitt :/</p>) : ("")}
         <Pagination
           total={productResultCount}
           page={page}

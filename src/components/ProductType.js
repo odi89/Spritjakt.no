@@ -13,7 +13,7 @@ class ProductType extends React.Component {
           defaultChecked={productType.state}
         />
         <span className="name">{name}</span>
-        <span className="count">{productType.count[store]}</span>
+        {/* <span className="count">{productType.count[store]}</span> */}
       </label>
     );
   }

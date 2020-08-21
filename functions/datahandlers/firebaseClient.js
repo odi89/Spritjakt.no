@@ -128,9 +128,22 @@ module.exports = class FirebaseClient {
       .doc(stock.productId);
     try {
       console.log("Updating Stock " + stock.productId);
+      delete stock.productId;
       await productRef.update({ Stock: stock });
     } catch (e) {
-      console.log("Product not in database:" + stock.productId);
+      console.log("Product not in database");
     }
+  }
+
+  static async UpdateStores(stores) {
+    const storesRef = firebase.firestore().collection("Stores").doc("1");
+    storesRef.set({ StoreList: stores });
+  }
+
+  static async GetStores() {
+    const storesRef = firebase.firestore().collection("Stores").doc("1");
+    let storeObject = storesRef.get();
+    storeObject = (await storeObject).data();
+    return storeObject.StoreList;
   }
 };
