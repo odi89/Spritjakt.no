@@ -22,7 +22,6 @@ class ProductList extends React.Component {
       loadedProducts: [],
       stores: [],
       selectedStores: ["0"],
-      selectedCity: null,
       loading: true,
       sort: "SortingDiscount_asc",
       productTypes: {},
@@ -265,7 +264,6 @@ class ProductList extends React.Component {
 
     return (
       <div key="Productlist" className="main">
-        <p>Nylig oppdatert</p>
         <div className="before_products">
           <div className="nav">
             <div

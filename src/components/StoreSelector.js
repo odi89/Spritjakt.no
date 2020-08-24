@@ -1,6 +1,5 @@
 import React from "react";
-//import "./css/StoreSelector.css";
-import StoreButton from "./StoreButton";
+import "./css/storeSelector.css";
 import SortArray from "sort-array";
 import Select from 'react-select'
 
@@ -58,13 +57,25 @@ class StoreSelector extends React.Component {
   render() {
     return (
       <div className="Stores">
-        <Select
-          value={this.state.selectedOptions}
-          onChange={this.handleStoreUpdate}
-          isMulti
-          options={this.state.storeOptions}
-          isOptionDisabled={o => o.disabled === true}
-        />
+        <label>
+          <span style={{ display: "block", height: 0, width: 0, overflow: "hidden" }}>Velg butikker</span>
+          <Select
+            value={this.state.selectedOptions}
+            onChange={this.handleStoreUpdate}
+            isMulti
+            options={this.state.storeOptions}
+            isOptionDisabled={o => o.disabled === true}
+            noOptionsMessage={() => "Fant niks og nada"}
+            placeholder={'Velg butikker'}
+            theme={theme => ({
+              ...theme,
+              colors: {
+                ...theme.colors,
+                primary: 'black',
+              },
+            })}
+          />
+        </label>
       </div>
     );
   }

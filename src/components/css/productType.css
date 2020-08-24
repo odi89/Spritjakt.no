@@ -2,7 +2,7 @@
   border-radius: 3px;
   text-align: center;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   font-weight: 400;
   font-size: 0.85rem;
