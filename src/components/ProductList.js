@@ -42,6 +42,7 @@ class ProductList extends React.Component {
   async componentDidMount() {
     this.updateProductResults(this.state.timeSpan, true);
   }
+
   async updateProductResults(timeSpan, firstLoad = false) {
     let stores = this.state.stores;
     if (firstLoad) {
@@ -71,6 +72,7 @@ class ProductList extends React.Component {
           count: {
             ["0"]: 1
           },
+          products: {}
         };
       } else {
         productTypes[p.SubType].count["0"]++;
@@ -153,80 +155,75 @@ class ProductList extends React.Component {
     productTypes[name].state = isSelected;
 
     firebase.analytics().logEvent("filter_click", { value: productTypes[name] });
-    this.updateFilter(this.state.selectedStores, productTypes);
+    this.filterProducts(this.state.selectedStores, productTypes);
   };
 
-  updateFilter = (selectedStores, productTypes = this.state.productTypes) => {
-
+  filterProducts = (selectedStores = this.state.selectedStores, productTypes = this.state.productTypes) => {
+    let productResult = [];
+    let prevSelectedProductTypes = Object.keys(productTypes).find(pt => productTypes[pt].state) ?? [];
     Object.keys(productTypes).map((pt) => {
-      selectedStores.map(s => {
-        if (!productTypes[pt].count[s]) {
-          productTypes[pt].state = false;
-        }
-      });
+      if (Object.keys(productTypes[pt].products).length === 0) {
+        productTypes[pt].state = false;
+      }
     });
 
-    this.setState({
-      productTypes: productTypes,
-      showAllresults: Object.keys(productTypes).find(pt => productTypes[pt].state) ? false : true,
-      page: 1,
-    });
-    this.filterProducts();
-  };
-
-  filterProducts = () => {
-    let productTypes = this.state.productTypes;
-    let list = [];
     for (let i = 0; i < this.state.loadedProducts.length; i++) {
       const p = this.state.loadedProducts[i];
       if ((productTypes[p.SubType].state || !Object.keys(productTypes).find(pt => productTypes[pt].state)) &&
-        (this.state.selectedStores.includes("0") || p.Stock.Stores.find((s) => this.state.selectedStores.includes(s.name)))) {
-        list.push(p);
-        productTypes[p.SubType].currentTypeCount++;
+        (selectedStores.includes("0") || p.Stock.Stores.find((s) => selectedStores.includes(s.name)))) {
+        productResult.push(p);
+        productTypes[p.SubType].products[p.Id] = true;
+        if (prevSelectedProductTypes.includes(p.SubType)) {
+          productTypes[p.SubType].state = true;
+        }
       }
     }
-    this.setState(
-      {
-        productResult: list,
-        productTypes: productTypes
-      });
+
+    this.setState({
+      productResult: productResult,
+      productTypes: productTypes,
+      selectedStores: selectedStores,
+      showAllresults: Object.keys(productTypes).find(pt => productTypes[pt].state) ? false : true
+    });
   }
 
   displayProducts = () => {
-    let list = [];
-    let startPoint = this.state.pageSize * (this.state.page - 1);
-    let displayedProducts = 0;
-    for (let i = startPoint; i < this.state.productResult.length; i++) {
-      const p = this.state.loadedProducts[i];
-      if (displayedProducts < this.state.pageSize) {
-        displayedProducts++;
-        list.push(
+    let productResult = this.state.productResult;
+    let productDisplay = [];
+    let startPoint = productResult.length > this.state.pageSize ? this.state.pageSize * (this.state.page - 1) : 0;
+    for (let i = startPoint; i < productResult.length; i++) {
+      const p = productResult[i];
+      if (productDisplay.length < this.state.pageSize) {
+        productDisplay.push(
           <ProductComp key={p.Id} showDiff={true} product={p} selectedStore={"0"} setGraph={this.setGraph.bind(this)} />
         );
       }
     }
-    return list;
-  };
+    return productDisplay;
+  }
 
   displayProductTypes = () => {
     let list = [];
-    Object.keys(this.state.productTypes).map((ptKey) => {
-      if (this.state.selectedStores.find(s => (this.state.productTypes[ptKey].count[s] != undefined)))
+    let productTypes = this.state.productTypes;
+    Object.keys(productTypes).map((ptKey) => {
+      if (Object.keys(productTypes[ptKey].products).length !== 0)
         list.push(
-          <ProductType key={ptKey} store={this.state.selectedStore} handleFilterClick={this.handleFilterClick.bind(this)} name={ptKey} productType={this.state.productTypes[ptKey]}
+          <ProductType key={ptKey} store={this.state.selectedStores} handleFilterClick={this.handleFilterClick.bind(this)} name={ptKey} productType={productTypes[ptKey]}
           />
         );
     });
     return list;
   };
+
   formatDate = (date) => {
     date.setHours(date.getHours() + 2);
     return date.toISOString().slice(0, 10);
   };
 
   handleStoreUpdate = (storeList) => {
-    this.setState({ selectedStores: storeList });
-    this.updateFilter(storeList);
+    let productTypes = this.state.productTypes;
+    Object.keys(productTypes).map(pt => productTypes[pt].products = {})
+    this.filterProducts(storeList, productTypes);
   };
 
   handleSortChange = (event = undefined) => {
@@ -263,7 +260,9 @@ class ProductList extends React.Component {
     Scroll.animateScroll.scrollTo(this.productList.current.offsetTop - 300);
   };
   render() {
-    let { pageSize, page, productResultCount } = this.state;
+
+    let { pageSize, page, productResult } = this.state;
+
     return (
       <div key="Productlist" className="main">
         <p>Nylig oppdatert</p>
@@ -311,8 +310,7 @@ class ProductList extends React.Component {
               <select
                 id="sorting"
                 value={this.state.sort}
-                onChange={this.handleSortChange}
-              >
+                onChange={this.handleSortChange}>
                 <option value="LastUpdated_desc">Nyeste</option>
                 <option value="SortingDiscount_asc">Prisendring</option>
                 <option value="Name_asc">Navn (A-Å)</option>
@@ -330,8 +328,7 @@ class ProductList extends React.Component {
               <select
                 id="timespan"
                 value={this.state.timeSpan}
-                onChange={this.changeTimeSpan}
-              >
+                onChange={this.changeTimeSpan}>
                 <option value="14days">Siste 14 dager</option>
                 <option value="30days">Siste 30 dager</option>
                 <option value="90days">Siste 90 dager</option>
@@ -340,27 +337,26 @@ class ProductList extends React.Component {
           </div>
         </div>
         <Pagination
-          total={this.state.productResultCount}
+          total={productResult.length}
           page={this.state.page}
           setPage={this.setPage.bind(this)}
           pageSize={pageSize}
         />
         <ul ref={this.productList} className="ProductList">
-          {this.state.loading ? (
-            <FontAwesomeIcon icon={faCircleNotch} size="5x" />
-          ) : (
-              this.displayProducts()
-            )}
+          {this.state.loading ? <FontAwesomeIcon icon={faCircleNotch} size="5x" /> : this.displayProducts()}
+          {productResult.length === 0 && this.state.loading === false ? (
+            <p
+              style={{
+                textAlign: "center",
+                position: "absolute",
+                left: 0,
+                right: 0,
+                margin: "auto"
+              }}
+            >Her var det ikke noe, gitt :/</p>) : ("")}
         </ul>
-        {this.state.productResultCount === 0 && this.state.loading === false ? (
-          <p
-            style={{
-              textAlign: " center",
-              fontWeight: "bold",
-            }}
-          >Her var det ikke noe, gitt :/</p>) : ("")}
         <Pagination
-          total={productResultCount}
+          total={productResult.length}
           page={page}
           setPage={this.setPage.bind(this)}
           pageSize={pageSize}

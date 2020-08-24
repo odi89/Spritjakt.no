@@ -3,7 +3,7 @@ import "./css/productType.css";
 
 class ProductType extends React.Component {
   render() {
-    var { handleFilterClick, productType, name, store } = this.props;
+    var { handleFilterClick, productType, name } = this.props;
     return (
       <label className={"clickable ProductType " + productType.state}>
         <input
@@ -13,7 +13,7 @@ class ProductType extends React.Component {
           defaultChecked={productType.state}
         />
         <span className="name">{name}</span>
-        {/* <span className="count">{productType.count[store]}</span> */}
+        <span className="count">{Object.keys(productType.products).length}</span>
       </label>
     );
   }

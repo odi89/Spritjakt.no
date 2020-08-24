@@ -29,7 +29,8 @@ class StoreSelector extends React.Component {
     stores.map(s => {
       storeOptions.push({
         value: s.storeId,
-        label: s.storeName + " (" + (s.count === undefined ? 0 : s.count) + ") "
+        label: s.storeName + " (" + (s.count === undefined ? 0 : s.count) + ") ",
+        disabled: s.count === undefined
       });
     });
 
@@ -38,19 +39,9 @@ class StoreSelector extends React.Component {
       storeOptions: storeOptions,
     });
   }
-  createStoreSelect = (stores) => {
-    let list = [];
-    stores.map(s => {
-      list.push({
-        value: s.storeId,
-        label: s.storeName + " (" + (s.count === undefined ? 0 : s.count) + ") "
-      });
-    });
-    return list;
-  }
   handleStoreUpdate = (storeOptions) => {
     let list = [];
-    if (storeOptions) {
+    if (storeOptions && storeOptions.length > 0) {
       storeOptions.map(s => {
         list.push(s.value);
       });
@@ -67,7 +58,13 @@ class StoreSelector extends React.Component {
   render() {
     return (
       <div className="Stores">
-        <Select value={this.state.selectedOptions} onChange={this.handleStoreUpdate} isMulti options={this.state.storeOptions} />
+        <Select
+          value={this.state.selectedOptions}
+          onChange={this.handleStoreUpdate}
+          isMulti
+          options={this.state.storeOptions}
+          isOptionDisabled={o => o.disabled === true}
+        />
       </div>
     );
   }
