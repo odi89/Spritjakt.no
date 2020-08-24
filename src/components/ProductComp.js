@@ -26,8 +26,9 @@ class ProductComp extends React.Component {
       for (const i in product.Stock.Stores) {
         stock += product.Stock.Stores[i].stockInfo.stockLevel;
       }
-    } else if (product.Stock.stock) {
-      stock = product.Stock.stock;
+    }
+    if (stock === 0) {
+      stock = product.ProductStatusSaleName ? product.ProductStatusSaleName : "Kan bestilles";
     }
 
     return (
@@ -55,8 +56,7 @@ class ProductComp extends React.Component {
           </span>
         )}
         <span className="change_time">
-          Endret
-          <br /> {lastChangedDate.toISOString().slice(0, 10)}
+          Endret<br /> {lastChangedDate.toISOString().slice(0, 10)}
         </span>
         <div className="product_details">
           <h2 className="name">{product.Name}</h2>

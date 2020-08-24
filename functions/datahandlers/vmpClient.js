@@ -14,7 +14,7 @@ class VmpClient {
   static async FetchFreshProducts() {
     var today = new Date();
     let options = vmpOptions();
-    options.uri += "products/v0/details-normal";
+    options.uri += "products/v0/details-normal/";
     options.qs = {
       changedSince: today.toISOString().slice(0, 10),
       maxResults: 30000,
@@ -43,7 +43,7 @@ class VmpClient {
     var today = new Date();
     let options = vmpOptions();
 
-    options.uri += "products/v0/accumulated-stock";
+    options.uri += "products/v0/accumulated-stock/";
     options.resolveWithFullResponse = true;
     options.qs = {
       maxResults: 5000,
@@ -120,9 +120,6 @@ class Product {
     this.LastUpdated = d.getTime();
     this.Id = rawProduct.basic.productId;
     this.Name = rawProduct.basic.productLongName;
-    this.SearchableName = rawProduct.basic.productLongName
-      .toLowerCase()
-      .replace(/[^a-z0-9]/gi, "");
     this.Volume = rawProduct.basic.volume;
     this.Alcohol = rawProduct.basic.alcoholContent;
     this.Country = rawProduct.origins.origin.country;
@@ -130,9 +127,8 @@ class Product {
     this.SubType = rawProduct.classification.subProductTypeName;
     this.Description = rawProduct.description;
     this.CurrentPrice = rawProduct.prices[0].salesPrice;
-    this.SearchWords = rawProduct.basic.productLongName
-      .toLowerCase()
-      .split(" ");
+    this.SearchWords = rawProduct.basic.productLongName.toLowerCase().split(" ");
+    this.ProductStatusSaleName = rawProduct.basic.productStatusSaleName;
   }
 }
 

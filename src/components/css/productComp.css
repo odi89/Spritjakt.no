@@ -23,6 +23,7 @@ li.ProductComp > button {
   background: none;
   border: none;
   outline: none;
+  height: 0;
 }
 
 .ProductComp .product_img {

@@ -147,6 +147,7 @@ class ProductList extends React.Component {
       productTypes: productTypes,
       showAllresults: true,
     });
+    this.filterProducts();
   };
 
   handleFilterClick = (isSelected, name) => {
@@ -242,6 +243,7 @@ class ProductList extends React.Component {
       order: [sorting[1], "asc"],
     });
     this.setState({ loadedProducts: list });
+    this.filterProducts();
   };
 
   changeTimeSpan = (event) => {

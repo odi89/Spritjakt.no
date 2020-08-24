@@ -1,7 +1,6 @@
 const SortArray = require("sort-array");
 const firebase = require("firebase-admin");
 require("firebase/firestore");
-const VmpClient = require("./vmpClient");
 const allTimeEarliestDate = new Date(1594166400000);
 
 module.exports = class FirebaseClient {
@@ -28,25 +27,32 @@ module.exports = class FirebaseClient {
         delete p.CurrentPrice;
         p.LastUpdated = allTimeEarliestDate.getTime() - 1000;
         sp = p;
-        continue;
-      }
-      delete sp.PriceHistory[today];
-      let LatestPrice = p.CurrentPrice;
-      let priceHistorySorted = SortArray(Object.keys(sp.PriceHistory), {
-        order: "desc",
-      });
 
-      if (priceHistorySorted.length !== 0) {
-        let comparativeBasePriceDate = priceHistorySorted[0];
-        //Only updating LastUpdate if there has been an actual pricechange
-        if (sp.PriceHistory[comparativeBasePriceDate] !== LatestPrice) {
-          sp.LastUpdated = p.LastUpdated;
-          sp.PriceHistory[today] = p.CurrentPrice;
+      } else {
+        sp.ProductStatusSaleName = p.ProductStatusSaleName;
+        sp.SearchWords = p.SearchWords;
+        sp.Description = p.Description;
+        delete sp.PriceHistory[today];
+        let LatestPrice = p.CurrentPrice;
+        let priceHistorySorted = SortArray(Object.keys(sp.PriceHistory), {
+          order: "desc",
+        });
+
+        if (priceHistorySorted.length !== 0) {
+          let comparativeBasePriceDate = priceHistorySorted[0];
+          //Only updating LastUpdate if there has been an actual pricechange
+          if (sp.PriceHistory[comparativeBasePriceDate] !== LatestPrice) {
+            sp.LastUpdated = p.LastUpdated;
+            sp.PriceHistory[today] = p.CurrentPrice;
+          }
         }
       }
-
       console.log(i);
-      await productRef.update(sp);
+      try {
+        await productRef.update(sp);
+      } catch (error) {
+        console.log(error);
+      }
     }
     console.log(updatedProducts.length);
   }

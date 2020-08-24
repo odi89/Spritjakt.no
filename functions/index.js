@@ -70,258 +70,229 @@ function prepProduct(p) {
   return p;
 }
 
-exports.fetchProducts = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .pubsub.schedule("15 6 * * *")
-  .timeZone("Europe/Paris")
-  .onRun(async (context) => {
-    await FirebaseClient.UpdateProductPrices(
-      await VmpClient.FetchFreshProducts()
-    );
-  });
+exports.fetchProducts = functions.region("europe-west1").runWith(runtimeOpts).pubsub.schedule("45 6 * * *").timeZone("Europe/Paris").onRun(async (context) => {
+  await FirebaseClient.UpdateProductPrices(await VmpClient.FetchFreshProducts());
+});
 
-exports.fetchStocks = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .pubsub.schedule("30 6 * * *")
-  .timeZone("Europe/Paris")
-  .onRun(async (context) => {
-    let moreStocksToFetch = true;
-    let freshStocks = [];
-    let tries = 0;
-    while (moreStocksToFetch && tries < 10) {
-      let { totalCount, stocks } = await VmpClient.FetchFreshStocks(
-        freshStocks.length
-      );
-
-      freshStocks = freshStocks.concat(stocks);
-      console.info("freshStocks: " + freshStocks.length);
-
-      if (totalCount === freshStocks.length || stocks.length === 0) {
-        moreStocksToFetch = false;
-      }
-      tries++;
-    }
-    if (freshStocks.length > 0) {
-      await FirebaseClient.SetStockUpdateList(freshStocks, true);
-    }
-  });
-
-exports.getOnSaleProductsHttp = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .https.onRequest(async (req, oldRes) => {
-    let { res, exit } = httpCorsOptions(req, oldRes);
-    if (exit) {
-      return;
-    }
-
-    let timeSpan = allTimeEarliestDate;
-
-    if (
-      allowedTimeSpans[req.query.timeSpan] !== undefined &&
-      allowedTimeSpans[req.query.timeSpan].getTime() >
-      allTimeEarliestDate.getTime()
-    ) {
-      timeSpan = allowedTimeSpans[req.query.timeSpan];
-    }
-
-    var lastWriteTime = await FirebaseClient.FetchLastWriteTime();
-    lastWriteTime.BasePriceTime = timeSpan.getTime();
-
-    var products = await FirebaseClient.FetchOnSaleProductsFireStore(
-      timeSpan.getTime()
+exports.fetchStocks = functions.region("europe-west1").runWith(runtimeOpts).pubsub.schedule("30 9 * * *").timeZone("Europe/Paris").onRun(async (context) => {
+  let moreStocksToFetch = true;
+  let freshStocks = [];
+  let tries = 0;
+  while (moreStocksToFetch && tries < 10) {
+    let { totalCount, stocks } = await VmpClient.FetchFreshStocks(
+      freshStocks.length
     );
 
-    var productsWithPriceChange = [];
+    freshStocks = freshStocks.concat(stocks);
+    console.info("freshStocks: " + freshStocks.length);
 
-    if (products) {
-      console.log(Object.keys(products).length);
-      console.log(req.query.timeSpan);
-      Object.keys(products).forEach((id) => {
-        let p = products[id];
-        p.PriceHistorySorted = SortArray(Object.keys(p.PriceHistory), {
-          order: "desc",
-        });
-
-        if (p.PriceHistorySorted.length === 1) {
-          return;
-        }
-
-        p.LatestPrice = p.PriceHistory[p.PriceHistorySorted[0]];
-
-        let priceHistorySortedAndFiltered = p.PriceHistorySorted.filter(
-          (priceDate) =>
-            priceDate <= lastWriteTime.BasePriceTime &&
-            priceDate !== p.PriceHistorySorted[0]
-        );
-
-        if (priceHistorySortedAndFiltered.length === 0) {
-          return;
-        }
-
-        let oldestPrice = p.PriceHistory[priceHistorySortedAndFiltered[0]];
-        p.ComparingPrice = oldestPrice;
-        p.SortingDiscount = (p.LatestPrice / oldestPrice) * 100;
-        p.Discount = (p.SortingDiscount - 100).toFixed(1);
-
-        if (p.SortingDiscount !== 100) {
-          p = prepProduct(p);
-          productsWithPriceChange.push(p);
-        }
-      });
+    if (totalCount === freshStocks.length || stocks.length === 0) {
+      moreStocksToFetch = false;
     }
-    return res.send({
-      products: productsWithPriceChange,
-      LastWriteTime: lastWriteTime,
-    });
-  });
+    tries++;
+  }
+  if (freshStocks.length > 0) {
+    await FirebaseClient.SetStockUpdateList(freshStocks, true);
+  }
+});
 
-exports.keepGetOnSaleProductsHttpAlive = functions.pubsub
-  .schedule("every 3 minutes")
-  .timeZone("Europe/Paris")
-  .onRun(async (context) => {
-    let functions = [
-      "https://europe-west1-spritjakt.cloudfunctions.net/productSearchAdvanced",
-      "https://europe-west1-spritjakt.cloudfunctions.net/getOnSaleProductsHttp",
-      "https://europe-west1-spritjakt.cloudfunctions.net/getStoresHttp",
-    ];
-    for (const i in functions) {
-      const uri = functions[i];
-      let options = {
-        uri: uri,
-        qs: {
-          pingCall: true,
-        },
-        json: true,
-      };
-      await rp(options)
-        .then(function (res) {
-          console.log(res);
-        })
-        .catch(function (err) {
-          console.log(err);
-        });
-    }
-  });
+exports.getOnSaleProductsHttp = functions.region("europe-west1").runWith(runtimeOpts).https.onRequest(async (req, oldRes) => {
+  let { res, exit } = httpCorsOptions(req, oldRes);
+  if (exit) {
+    return;
+  }
 
-exports.productSearchAdvanced = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .https.onRequest(async (req, oldRes) => {
-    let { res, exit } = httpCorsOptions(req, oldRes);
-    if (exit) {
-      return;
-    }
-    if (
-      req.query.searchString === undefined ||
-      req.query.searchString.trim().length === 0
-    ) {
-      return res.status(400).send();
-    }
+  let timeSpan = allTimeEarliestDate;
 
-    searchString = req.query.searchString.toLowerCase();
-    let stringList = searchString.split(" ").filter((s) => s.length > 1);
-    var products = await FirebaseClient.ProductSearchAdvanced(stringList);
+  if (
+    allowedTimeSpans[req.query.timeSpan] !== undefined &&
+    allowedTimeSpans[req.query.timeSpan].getTime() >
+    allTimeEarliestDate.getTime()
+  ) {
+    timeSpan = allowedTimeSpans[req.query.timeSpan];
+  }
 
-    let matchingProducts = [];
-    let highestScore = 0;
+  var lastWriteTime = await FirebaseClient.FetchLastWriteTime();
+  lastWriteTime.BasePriceTime = timeSpan.getTime();
+
+  var products = await FirebaseClient.FetchOnSaleProductsFireStore(
+    timeSpan.getTime()
+  );
+
+  var productsWithPriceChange = [];
+
+  if (products) {
+    console.log(Object.keys(products).length);
+    console.log(req.query.timeSpan);
     Object.keys(products).forEach((id) => {
       let p = products[id];
-
-      let nameList = p.Name.toLowerCase()
-        .split(" ")
-        .filter((s) => s.length > 1);
-
-      p.numberOfMatches = 0;
-      for (i in stringList) {
-        if (nameList.includes(stringList[i])) {
-          p.numberOfMatches++;
-          if (i !== 0 && nameList.includes(stringList[i - 1])) {
-            p.numberOfMatches++;
-          }
-        }
-        if (nameList[i] === stringList[i]) {
-          p.numberOfMatches++;
-        }
-      }
-
-      highestScore =
-        p.numberOfMatches > highestScore ? p.numberOfMatches : highestScore;
-
-      matchingProducts.push(p);
-    });
-
-    SortArray(matchingProducts, {
-      by: ["numberOfMatches", "Name"],
-      order: "desc",
-    });
-    matchingProducts = matchingProducts
-      .splice(0, 20)
-      .filter((p) => p.numberOfMatches >= highestScore - 3);
-
-    matchingProducts.map((p) => {
       p.PriceHistorySorted = SortArray(Object.keys(p.PriceHistory), {
         order: "desc",
       });
+
+      if (p.PriceHistorySorted.length === 1) {
+        return;
+      }
 
       p.LatestPrice = p.PriceHistory[p.PriceHistorySorted[0]];
 
       let priceHistorySortedAndFiltered = p.PriceHistorySorted.filter(
         (priceDate) =>
-          priceDate <= allTimeEarliestDate &&
+          priceDate <= lastWriteTime.BasePriceTime &&
           priceDate !== p.PriceHistorySorted[0]
       );
 
-      if (priceHistorySortedAndFiltered.length !== 0) {
-        let oldestPrice = p.PriceHistory[priceHistorySortedAndFiltered[0]];
-        p.ComparingPrice = oldestPrice;
-        p.SortingDiscount = (p.LatestPrice / oldestPrice) * 100;
-        p.Discount = (p.SortingDiscount - 100).toFixed(1);
-      } else {
-        p.SortingDiscount = 100;
+      if (priceHistorySortedAndFiltered.length === 0) {
+        return;
       }
-      p = prepProduct(p);
+
+      let oldestPrice = p.PriceHistory[priceHistorySortedAndFiltered[0]];
+      p.ComparingPrice = oldestPrice;
+      p.SortingDiscount = (p.LatestPrice / oldestPrice) * 100;
+      p.Discount = (p.SortingDiscount - 100).toFixed(1);
+
+      if (p.SortingDiscount !== 100) {
+        p = prepProduct(p);
+        productsWithPriceChange.push(p);
+      }
+    });
+  }
+  return res.send({
+    products: productsWithPriceChange,
+    LastWriteTime: lastWriteTime,
+  });
+});
+
+exports.keepGetOnSaleProductsHttpAlive = functions.pubsub.schedule("every 3 minutes").timeZone("Europe/Paris").onRun(async (context) => {
+  let functions = [
+    "https://europe-west1-spritjakt.cloudfunctions.net/productSearchAdvanced",
+    "https://europe-west1-spritjakt.cloudfunctions.net/getOnSaleProductsHttp",
+  ];
+  for (const i in functions) {
+    const uri = functions[i];
+    let options = {
+      uri: uri,
+      qs: {
+        pingCall: true,
+      },
+      json: true,
+    };
+    await rp(options)
+      .then(function (res) {
+        console.log(res);
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
+  }
+});
+
+exports.productSearchAdvanced = functions.region("europe-west1").runWith(runtimeOpts).https.onRequest(async (req, oldRes) => {
+  let { res, exit } = httpCorsOptions(req, oldRes);
+  if (exit) {
+    return;
+  }
+  if (
+    req.query.searchString === undefined ||
+    req.query.searchString.trim().length === 0
+  ) {
+    return res.status(400).send();
+  }
+
+  searchString = req.query.searchString.toLowerCase();
+  let stringList = searchString.split(" ").filter((s) => s.length > 1);
+  var products = await FirebaseClient.ProductSearchAdvanced(stringList);
+
+  let matchingProducts = [];
+  let highestScore = 0;
+  Object.keys(products).forEach((id) => {
+    let p = products[id];
+
+    let nameList = p.Name.toLowerCase()
+      .split(" ")
+      .filter((s) => s.length > 1);
+
+    p.numberOfMatches = 0;
+    for (i in stringList) {
+      if (nameList.includes(stringList[i])) {
+        p.numberOfMatches++;
+        if (i !== 0 && nameList.includes(stringList[i - 1])) {
+          p.numberOfMatches++;
+        }
+      }
+      if (nameList[i] === stringList[i]) {
+        p.numberOfMatches++;
+      }
+    }
+
+    highestScore =
+      p.numberOfMatches > highestScore ? p.numberOfMatches : highestScore;
+
+    matchingProducts.push(p);
+  });
+
+  SortArray(matchingProducts, {
+    by: ["numberOfMatches", "Name"],
+    order: "desc",
+  });
+  matchingProducts = matchingProducts
+    .splice(0, 20)
+    .filter((p) => p.numberOfMatches >= highestScore - 3);
+
+  matchingProducts.map((p) => {
+    p.PriceHistorySorted = SortArray(Object.keys(p.PriceHistory), {
+      order: "desc",
     });
 
-    return res.send(matchingProducts.splice(0, 20));
+    p.LatestPrice = p.PriceHistory[p.PriceHistorySorted[0]];
+
+    let priceHistorySortedAndFiltered = p.PriceHistorySorted.filter(
+      (priceDate) =>
+        priceDate <= allTimeEarliestDate &&
+        priceDate !== p.PriceHistorySorted[0]
+    );
+
+    if (priceHistorySortedAndFiltered.length !== 0) {
+      let oldestPrice = p.PriceHistory[priceHistorySortedAndFiltered[0]];
+      p.ComparingPrice = oldestPrice;
+      p.SortingDiscount = (p.LatestPrice / oldestPrice) * 100;
+      p.Discount = (p.SortingDiscount - 100).toFixed(1);
+    } else {
+      p.SortingDiscount = 100;
+    }
+    p = prepProduct(p);
   });
 
-exports.stockUpdateListener = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .database.ref("/StocksToBeFetched/")
-  .onWrite(async (change, context) => {
-    // Exit when the data is deleted.
-    if (!change.after.exists()) {
-      return null;
+  return res.send(matchingProducts.splice(0, 20));
+});
+
+exports.stockUpdateListener = functions.region("europe-west1").runWith(runtimeOpts).database.ref("/StocksToBeFetched/").onWrite(async (change, context) => {
+  // Exit when the data is deleted.
+  if (!change.after.exists()) {
+    return null;
+  }
+
+  const newValue = change.after.val();
+
+  const count = newValue.length > 500 ? 500 : newValue.length;
+  console.log(newValue.length);
+  for (let i = 0; i < count; i++) {
+    if (newValue[i] !== undefined) {
+      newValue[i].Stores = await VmpClient.FetchStoreStock(
+        newValue[i].productId
+      );
+      await FirebaseClient.UpdateProductStock(newValue[i]);
     }
+    newValue.splice(i, 1);
+  }
 
-    const newValue = change.after.val();
+  return await FirebaseClient.SetStockUpdateList(newValue);
+});
 
-    const count = newValue.length > 500 ? 500 : newValue.length;
-    console.log(newValue.length);
-    for (let i = 0; i < count; i++) {
-      if (newValue[i] !== undefined) {
-        newValue[i].Stores = await VmpClient.FetchStoreStock(
-          newValue[i].productId
-        );
-        await FirebaseClient.UpdateProductStock(newValue[i]);
-      }
-      newValue.splice(i, 1);
-    }
-
-    return await FirebaseClient.SetStockUpdateList(newValue);
-  });
-
-exports.getStoresHttp = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .https.onRequest(async (req, oldRes) => {
-    let { res, exit } = httpCorsOptions(req, oldRes);
-    if (exit) {
-      return;
-    }
-    return res.send(await FirebaseClient.GetStores());
-  });
+exports.getStoresHttp = functions.region("europe-west1").runWith(runtimeOpts).https.onRequest(async (req, oldRes) => {
+  let { res, exit } = httpCorsOptions(req, oldRes);
+  if (exit) {
+    return;
+  }
+  return res.send(await FirebaseClient.GetStores());
+});

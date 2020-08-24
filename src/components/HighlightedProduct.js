@@ -11,33 +11,25 @@ class ProductComp extends React.Component {
   }
 
   renderStoreStock = () => {
+    let product = this.props.product;
     let list = [];
-    let stores = this.props.product.Stock.Stores;
+    let stores = product.Stock.Stores;
     SortArray(stores, { by: "displayName" });
     stores.map((store) =>
       list.push(
         <li key={store.id}>
           <strong>{store.displayName}:</strong>
-          {store.stockInfo.stockLevel}
-          stk
+          {store.stockInfo.stockLevel} stk
         </li>
       )
     );
-    if (list.length === 0 && this.props.product.Stock.stock) {
+    if (list.length === 0) {
       list.push(
         <li key={"0"}>
-          <strong>Nettbutikk:</strong>
-          {this.props.product.Stock.stock}
-          stk
-        </li>
-      );
-    } else if (list.length === 0) {
-      list.push(
-        <li key={"0"}>
-          <strong
-            style={{ display: "block", textAlign: "center", width: "100%" }}
-          >
-            Ikke på lager
+          <strong style={{ display: "block", textAlign: "center", width: "100%" }}>
+            {product.ProductStatusSaleName ?
+              product.ProductStatusSaleName : "Kan bestilles"
+            }
           </strong>
         </li>
       );
