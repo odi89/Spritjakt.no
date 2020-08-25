@@ -116,11 +116,7 @@ module.exports = class FirebaseClient {
       );
       products.map((p) => {
         if (!Stocks.find((s) => s.productId === p.Id)) {
-          var stock = 0;
-          if (p.Stock !== undefined) {
-            stock = p.Stock.stock !== undefined ? p.Stock.stock : 0;
-          }
-          Stocks.push({ productId: p.Id, stock: stock });
+          Stocks.push({ productId: p.Id });
         }
       });
     }
@@ -135,6 +131,7 @@ module.exports = class FirebaseClient {
     try {
       console.log("Updating Stock " + stock.productId);
       delete stock.productId;
+      delete stock.stock;
       await productRef.update({ Stock: stock });
     } catch (e) {
       console.log("Product not in database");

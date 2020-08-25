@@ -56,7 +56,7 @@ class StoreSelector extends React.Component {
 
   render() {
     return (
-      <div className="Stores">
+      <div className="stores">
         <label>
           <span style={{ display: "block", height: 0, width: 0, overflow: "hidden" }}>Velg butikker</span>
           <Select

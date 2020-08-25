@@ -21,6 +21,7 @@ class ProductList extends React.Component {
     this.state = {
       loadedProducts: [],
       stores: [],
+      stockFilter: "all",
       selectedStores: ["0"],
       loading: true,
       sort: "SortingDiscount_asc",
@@ -170,7 +171,8 @@ class ProductList extends React.Component {
     for (let i = 0; i < this.state.loadedProducts.length; i++) {
       const p = this.state.loadedProducts[i];
       if ((productTypes[p.SubType].state || !Object.keys(productTypes).find(pt => productTypes[pt].state)) &&
-        (selectedStores.includes("0") || p.Stock.Stores.find((s) => selectedStores.includes(s.name)))) {
+        (selectedStores.includes("0") || p.Stock.Stores.find((s) => selectedStores.includes(s.name))) &&
+        this.stockFilter(p)) {
         productResult.push(p);
         productTypes[p.SubType].products[p.Id] = true;
         if (prevSelectedProductTypes.includes(p.SubType)) {
@@ -246,6 +248,31 @@ class ProductList extends React.Component {
     this.filterProducts();
   };
 
+  handleStockChange = async (event) => {
+    await this.setState({ stockFilter: event.target.value });
+    this.filterProducts();
+  }
+
+  stockFilter = (p) => {
+    let stockTypes = ["Midlertidig utsolgt", "Utgått"];
+    switch (this.state.stockFilter) {
+      case "online":
+        if (p.ProductStatusSaleName && stockTypes.includes(p.ProductStatusSaleName)) {
+          return false;
+        }
+        break;
+      case "instock":
+        if (p.Stock.Stores.length === 0) {
+          return false;
+        }
+        break;
+
+      default:
+        break;
+    }
+    return true;
+  }
+
   changeTimeSpan = (event) => {
     this.setState({ timeSpan: event.target.value, loading: true });
 
@@ -317,6 +344,18 @@ class ProductList extends React.Component {
                 <option value="Name_desc">Navn (Å-A)</option>
                 <option value="LatestPrice_asc">Pris (lav-høy)</option>
                 <option value="LatestPrice_desc">Pris (høy-lav)</option>
+              </select>
+            </div>
+            <div className="stock">
+              <label htmlFor="stock">Lagerstatus</label>
+              <br />
+              <select
+                id="stock"
+                value={this.state.stockFilter}
+                onChange={this.handleStockChange}>
+                <option value="all">Alle</option>
+                <option value="online">Kan bestilles på nett</option>
+                <option value="instock">På lager i butikk</option>
               </select>
             </div>
             {this.state.stores.length > 0 &&

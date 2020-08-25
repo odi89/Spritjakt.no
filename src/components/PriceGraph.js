@@ -19,6 +19,7 @@ class PriceGraph extends React.Component {
       data: [],
     };
     let today = new Date();
+    today.setFullYear(today.getFullYear(), today.getMonth(), today.getDate());
 
     var pricesReversed = p.PriceHistorySorted.slice();
     pricesReversed.reverse();
@@ -35,8 +36,7 @@ class PriceGraph extends React.Component {
       if (p.PriceHistory[date.getTime()]) {
         mostRecentPrice = p.PriceHistory[date.getTime()];
       }
-      let datestring =
-        date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+      let datestring = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
       config.data.push({ x: datestring, y: mostRecentPrice });
 
       date.setDate(date.getDate() + 1);
@@ -98,7 +98,7 @@ class PriceGraph extends React.Component {
               tickRotation: -25,
               tickSize: 5,
               tickPadding: 5,
-              tickValues: "every 7 days",
+              tickValues: "every 10 days",
               legendPosition: "middle",
             }}
             areaBaselineValue={minPrice}

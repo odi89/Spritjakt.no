@@ -83,23 +83,28 @@ ul.ProductList {
 
 .nav {
   display: grid;
-  grid-template-areas: "sto sto sto" "fil fil fil" "sor tim tim";
-  grid-gap: 5px;
+  grid-template-areas: "stock stock sto" "fil fil fil" "sor sor tim";
+  grid-gap: 10px;
   align-items: baseline;
   width: 100%;
 }
+.nav .stock{
+  grid-area: stock;
+  justify-self: start;
+}
 
-.timeSpan {
+.nav .timeSpan {
   grid-area: tim;
   justify-self: end;
+  text-align: right;
 }
 
-.stores {
+.nav .stores {
   grid-area: sto;
+  align-self: end;
 }
-.sorting {
+.nav .sorting {
   grid-area: sor;
-  margin-top: 10px;
 }
 .resetFilter {
   grid-area: pta;
@@ -163,7 +168,7 @@ ul.ProductList {
     grid-template-columns: 1fr 1fr;
   }
   .nav {
-    grid-template-areas: "sto sto sto" "fil fil fil" "sor tim tim";
+    grid-template-areas: "sto sto" "stock stock" "fil il" "sor tim";
   }
   .filter legend {
     font-size: 1.5rem;
@@ -224,5 +229,11 @@ ul.ProductList {
     margin-right: 0;
     width: unset;
     height: unset;
+  }
+  .nav .stock,
+  .nav .stock select,
+  .nav .stores,
+  .nav .sorting{
+    width: 100%;
   }
 }

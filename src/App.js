@@ -47,19 +47,15 @@ class App extends React.Component {
             <a
               target="_blank"
               rel="noreferrer"
-              href="https://github.com/matslb/Spritjakt.no"
-            >
-              Github
+              href="https://github.com/matslb/Spritjakt.no"> Github
             </a>
           </span>
           <span data-nosnippet="true">
-            © 2020
-            <a
+            © 2020 <a
               target="_blank"
               rel="noreferrer"
               href="https://no.linkedin.com/in/mats-l%C3%B8vstrand-berntsen-4682b2142"
-            >
-              Mats Løvstrand Berntsen
+            > Mats Løvstrand Berntsen
             </a>
           </span>
         </footer>

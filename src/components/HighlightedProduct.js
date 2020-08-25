@@ -23,18 +23,16 @@ class ProductComp extends React.Component {
         </li>
       )
     );
-    if (list.length === 0) {
-      list.push(
-        <li key={"0"}>
-          <strong style={{ display: "block", textAlign: "center", width: "100%" }}>
-            {product.ProductStatusSaleName ?
-              product.ProductStatusSaleName : "Kan bestilles"
-            }
-          </strong>
-        </li>
-      );
-    }
-
+    list.push(
+      <li key={"0"}>
+        <strong>
+          Nettbutikk:
+            </strong>
+        {product.ProductStatusSaleName ?
+          product.ProductStatusSaleName : "Kan bestilles"
+        }
+      </li>
+    );
     return list;
   };
 
