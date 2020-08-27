@@ -63,11 +63,12 @@ class VmpClient {
         return {
           totalCount: parseInt(res.headers["x-total-count"]),
           stocks: items,
+          error: false
         };
       })
       .catch(function (err) {
         console.error("vmp fetch failed: " + err);
-        return { totalCount: 0, stocks: [] };
+        return { totalCount: 0, stocks: [], error: true };
       });
   }
   static async FetchStoreStock(productId) {

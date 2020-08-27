@@ -78,19 +78,21 @@ exports.fetchStocks = functions.region("europe-west1").runWith(runtimeOpts).pubs
   let moreStocksToFetch = true;
   let freshStocks = [];
   let tries = 0;
-  while (moreStocksToFetch && tries < 10) {
-    let { totalCount, stocks } = await VmpClient.FetchFreshStocks(
-      freshStocks.length
-    );
+  while (moreStocksToFetch && tries < 20) {
+    let { totalCount, stocks, error } = await VmpClient.FetchFreshStocks(freshStocks.length);
 
     freshStocks = freshStocks.concat(stocks);
     console.info("freshStocks: " + freshStocks.length);
 
-    if (totalCount === freshStocks.length || stocks.length === 0) {
+    if ((totalCount === freshStocks.length || stocks.length === 0) && !error) {
       moreStocksToFetch = false;
+    } else if (error) {
+      console.info("Could not fetch stocks, waiting 10 seconds until retry");
+      await new Promise(r => setTimeout(r, 10000));
     }
     tries++;
   }
+
   if (freshStocks.length > 0) {
     await FirebaseClient.SetStockUpdateList(freshStocks, true);
   }

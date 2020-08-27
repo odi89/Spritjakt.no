@@ -116,7 +116,7 @@ module.exports = class FirebaseClient {
       );
       products.map((p) => {
         if (!Stocks.find((s) => s.productId === p.Id)) {
-          Stocks.push({ productId: p.Id });
+          Stocks.unshift({ productId: p.Id });
         }
       });
     }
