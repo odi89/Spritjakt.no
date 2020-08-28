@@ -4,6 +4,7 @@ require("firebase/firestore");
 const allTimeEarliestDate = new Date(1594166400000);
 
 module.exports = class FirebaseClient {
+
   static async UpdateProductPrices(updatedProducts) {
     let d = new Date();
     d.setDate(d.getDate() - 1);
@@ -11,9 +12,15 @@ module.exports = class FirebaseClient {
     d.setMinutes(0);
     d.setSeconds(0);
     d.setMilliseconds(0);
+
     var today = d.getTime();
+
     console.log("Products to update: " + updatedProducts.length);
+
     this.UpdateWriteTime(updatedProducts.length);
+
+    var newsLetterProducts = [];
+
     for (let i = 0; i < updatedProducts.length; i++) {
       const p = updatedProducts[i];
 
@@ -44,17 +51,41 @@ module.exports = class FirebaseClient {
           if (sp.PriceHistory[comparativeBasePriceDate] !== LatestPrice) {
             sp.LastUpdated = p.LastUpdated;
             sp.PriceHistory[today] = p.CurrentPrice;
+            newsLetterProducts.push(this.PrepProduct(sp));
           }
         }
       }
-      console.log(i);
       try {
         await productRef.update(sp);
       } catch (error) {
         console.log(error);
       }
     }
-    console.log(updatedProducts.length);
+    this.SetNewsLetterProducts(newsLetterProducts);
+  }
+
+  static PrepProduct(p) {
+    if (p.SubType && p.SubType.includes("Brennevin,")) {
+      p.SubType = "Brennevin";
+    }
+    if (p.SubType && p.SubType.includes("Sterkvin, annen")) {
+      p.SubType = "Sterkvin";
+    }
+    if (p.SubType == undefined) {
+      p.SubType = p.Type;
+    }
+
+    if (p.Stock === undefined) {
+      p.Stock = {
+        Stores: [],
+      };
+    }
+    if (p.Stock.Stores === undefined) {
+      p.Stock.stock = p.Stock.Stock;
+      delete p.Stock.Stock;
+      p.Stock.Stores = [];
+    }
+    return p;
   }
 
   static async FetchOnSaleProductsFireStore(UpdateTime) {
@@ -67,7 +98,38 @@ module.exports = class FirebaseClient {
     let products = [];
     if (!snapshot.empty) {
       snapshot.forEach((p) => {
-        products.push(p.data());
+        p = p.data();
+
+        p.PriceHistorySorted = SortArray(Object.keys(p.PriceHistory), {
+          order: "desc",
+        });
+
+        if (p.PriceHistorySorted.length === 1) {
+          return;
+        }
+
+        p.LatestPrice = p.PriceHistory[p.PriceHistorySorted[0]];
+
+        let priceHistorySortedAndFiltered = p.PriceHistorySorted.filter(
+          (priceDate) =>
+            priceDate <= UpdateTime &&
+            priceDate !== p.PriceHistorySorted[0]
+        );
+
+        if (priceHistorySortedAndFiltered.length === 0) {
+          return;
+        }
+
+        let oldestPrice = p.PriceHistory[priceHistorySortedAndFiltered[0]];
+        p.ComparingPrice = oldestPrice;
+        p.SortingDiscount = (p.LatestPrice / oldestPrice) * 100;
+        p.Discount = (p.SortingDiscount - 100).toFixed(1);
+
+        if (p.SortingDiscount !== 100) {
+          p = this.PrepProduct(p);
+          products.push(p);
+        }
+
       });
     }
     return products;
@@ -148,5 +210,41 @@ module.exports = class FirebaseClient {
     let storeObject = storesRef.get();
     storeObject = (await storeObject).data();
     return storeObject.StoreList;
+  }
+
+  static async GetEmails() {
+
+    var emails = [];
+    firebase.firestore().collection("Emails")
+      .get()
+      .then(function (querySnapshot) {
+        querySnapshot.forEach(function (doc) {
+          emails.push(doc.data());
+        });
+      })
+      .catch(function (error) {
+        console.log("Error getting emails: ", error);
+      });
+    return emails;
+  }
+
+  static async RegisterEmail(email) {
+
+    firebase.firestore().collection("Emails").add(email)
+      .then(function (docRef) {
+        console.log("email added with ID: ", docRef.id);
+        return true;
+      })
+      .catch(function (error) {
+        console.error("could not add email: ", error);
+        return false;
+      });
+  }
+
+  static async RemoveEmail(email) {
+  }
+
+  static async SetNewsLetterProducts(products = []) {
+    firebase.database().ref("/NewsLetterProducts/").set(products);
   }
 };

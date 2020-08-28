@@ -1,6 +1,7 @@
 const functions = require("firebase-functions");
 const FirebaseClient = require("./datahandlers/firebaseClient");
 const VmpClient = require("./datahandlers/vmpClient");
+const EmailClient = require("./datahandlers/emailClient");
 const firebaseAdmin = require("firebase-admin");
 const serviceAccount = require("./configs/serviceAccountKey.json");
 const rp = require("request-promise");
@@ -121,46 +122,8 @@ exports.getOnSaleProductsHttp = functions.region("europe-west1").runWith(runtime
     timeSpan.getTime()
   );
 
-  var productsWithPriceChange = [];
-
-  if (products) {
-    console.log(Object.keys(products).length);
-    console.log(req.query.timeSpan);
-    Object.keys(products).forEach((id) => {
-      let p = products[id];
-      p.PriceHistorySorted = SortArray(Object.keys(p.PriceHistory), {
-        order: "desc",
-      });
-
-      if (p.PriceHistorySorted.length === 1) {
-        return;
-      }
-
-      p.LatestPrice = p.PriceHistory[p.PriceHistorySorted[0]];
-
-      let priceHistorySortedAndFiltered = p.PriceHistorySorted.filter(
-        (priceDate) =>
-          priceDate <= lastWriteTime.BasePriceTime &&
-          priceDate !== p.PriceHistorySorted[0]
-      );
-
-      if (priceHistorySortedAndFiltered.length === 0) {
-        return;
-      }
-
-      let oldestPrice = p.PriceHistory[priceHistorySortedAndFiltered[0]];
-      p.ComparingPrice = oldestPrice;
-      p.SortingDiscount = (p.LatestPrice / oldestPrice) * 100;
-      p.Discount = (p.SortingDiscount - 100).toFixed(1);
-
-      if (p.SortingDiscount !== 100) {
-        p = prepProduct(p);
-        productsWithPriceChange.push(p);
-      }
-    });
-  }
   return res.send({
-    products: productsWithPriceChange,
+    products: products,
     LastWriteTime: lastWriteTime,
   });
 });
@@ -297,4 +260,55 @@ exports.getStoresHttp = functions.region("europe-west1").runWith(runtimeOpts).ht
     return;
   }
   return res.send(await FirebaseClient.GetStores());
+});
+
+
+function validateEmail(email) {
+  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(String(email).toLowerCase());
+}
+
+exports.registerEmailHttp = functions.region("europe-west1").runWith(runtimeOpts).https.onRequest(async (req, oldRes) => {
+  let { res, exit } = httpCorsOptions(req, oldRes);
+  if (exit) {
+    return;
+  }
+  if (req.query.email === undefined || !validateEmail(req.query.email)) {
+    return res.status(400).send();
+  }
+
+  let email = req.query.email.toLowerCase();
+
+  let existingEmails = FirebaseClient.GetEmails();
+
+  if ((await existingEmails).includes(email)) {
+    return res.status(409).send("Email already exist");
+  }
+
+  let emailWasRegistered = FirebaseClient.RegisterEmail(email);
+  if (emailWasRegistered) {
+    return res.status(201).send();
+  }
+  return res.status(500).send("Something went wrong");
+});
+
+exports.sendNewsLetterEmails = functions.region("europe-west1").runWith(runtimeOpts).database.ref("/NewsletterProducts/").onWrite(async (change, context) => {
+  // Exit when the data is deleted.
+  if (!change.after.exists()) {
+    return null;
+  }
+  const newsLetterProducts = change.after.val();
+  const emails = FirebaseClient.GetEmails();
+  const emailClient = new EmailClient(newsLetterProducts, emails);
+
+  emailClient.SendEmails();
+  return null;
+});
+
+exports.removeEmailHttp = functions.region("europe-west1").runWith(runtimeOpts).https.onRequest(async (req, oldRes) => {
+  let { res, exit } = httpCorsOptions(req, oldRes);
+  if (exit) {
+    return;
+  }
+  return;
 });
