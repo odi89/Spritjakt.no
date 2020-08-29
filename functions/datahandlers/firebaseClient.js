@@ -51,7 +51,9 @@ module.exports = class FirebaseClient {
           if (sp.PriceHistory[comparativeBasePriceDate] !== LatestPrice) {
             sp.LastUpdated = p.LastUpdated;
             sp.PriceHistory[today] = p.CurrentPrice;
-            newsLetterProducts.push(this.PrepProduct(sp));
+            if (sp.PriceHistory[comparativeBasePriceDate] > LatestPrice) {
+              newsLetterProducts.push(this.PrepProduct(sp));
+            }
           }
         }
       }
