@@ -5,6 +5,8 @@ import { faEnvelope, faCircleNotch, faPlusCircle, faMinusCircle } from "@fortawe
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isMobile } from "react-device-detect";
 import * as Scroll from "react-scroll";
+import firebase from "firebase/app";
+import "firebase/analytics";
 
 class NewsLetterSignup extends React.Component {
     constructor(props) {
@@ -28,12 +30,14 @@ class NewsLetterSignup extends React.Component {
         let resultMessage;
         await this.setState({ requestIsActive: true });
         if (this.state.actionIsRegister) {
+            firebase.analytics().logEvent("newsletter_signon");
             if (await SpritjaktClient.registerEmail(this.state.email)) {
                 resultMessage = "Supert! Nå er du påmeldt";
             } else {
                 resultMessage = "Øy! Bare en gang per epost";
             }
         } else {
+            firebase.analytics().logEvent("newsletter_signoff");
             if (await SpritjaktClient.removeEmail(this.state.email)) {
                 resultMessage = "Den er god, eposten din er fjernet fra listen";
             } else {
