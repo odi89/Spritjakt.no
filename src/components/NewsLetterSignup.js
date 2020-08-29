@@ -4,6 +4,7 @@ import SpritjaktClient from "../datahandlers/spritjaktClient";
 import { faEnvelope, faCircleNotch, faPlusCircle, faMinusCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isMobile } from "react-device-detect";
+import * as Scroll from "react-scroll";
 
 class NewsLetterSignup extends React.Component {
     constructor(props) {
@@ -50,10 +51,16 @@ class NewsLetterSignup extends React.Component {
             })
         }, 5000);
     }
+    toggleSection = (e) => {
+        if (!this.state.isActive) {
+            Scroll.animateScroll.scrollTo(0);
+        }
+        this.setState({ isActive: !this.state.isActive });
+    }
 
     render() {
         return (
-            <div className="NewsLetterWrapper" >
+            <div className={"NewsLetterWrapper " + (this.state.isActive ? " active " : "")} >
                 <div className={"NewsLetterSignup " + (this.state.isActive ? " active " : "") + (isMobile ? " handheld" : " desktop")}>
                     <FontAwesomeIcon icon={faEnvelope} size="2x" />
                     <h4>Få epost hver gang en vare blir satt ned i pris!</h4>
@@ -83,14 +90,15 @@ class NewsLetterSignup extends React.Component {
                         Kors på halsen, ti kniver i hjertet, mor og far i døden!
                     </p>
                 </div>
-                <button className="activateNL" onClick={e => this.setState({ isActive: !this.state.isActive })} >
+                <button className="activateNL" onClick={this.toggleSection} >
                     {this.state.isActive ?
                         <FontAwesomeIcon icon={faMinusCircle} size="2x" />
                         :
                         <FontAwesomeIcon icon={faPlusCircle} size="2x" />
                     }
                 </button>
-            </div>
+                <div className="overlay" onClick={this.toggleSection} ></div>
+            </div >
         );
     }
 }

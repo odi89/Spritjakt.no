@@ -97,3 +97,21 @@ button.activateNL:focus,button.activateNL:hover {
     padding: .25rem 0.5rem;
     text-align: center;
 }
+
+.NewsLetterWrapper .overlay {
+    position: fixed;
+    background: black;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.4s 0.1s ease;
+}
+.NewsLetterWrapper.active .overlay {
+    opacity: 0.4;
+    pointer-events: all;
+}
