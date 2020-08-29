@@ -27,9 +27,13 @@ ul.ProductList {
 .toggle {
   opacity: 0;
   transition: 0.2s;
+  position: relative;
+  z-index: 1;
 }
 .toggle.enter-done {
   opacity: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .priceGraphWrapper {
