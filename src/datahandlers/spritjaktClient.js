@@ -52,6 +52,42 @@ class SpritjaktClient {
       });
     return res === undefined ? [] : res;
   }
+
+  static async registerEmail(email) {
+    let options = {
+      uri: "https://europe-west1-spritjakt.cloudfunctions.net/registerEmailHttp",
+      qs: {
+        email: email
+      },
+      json: true,
+    };
+    let res = await rp(options)
+      .then(function (res) {
+        return true;
+      })
+      .catch(function (err) {
+        return false;
+      });
+    return res;
+  }
+  static async removeEmail(email) {
+    let options = {
+      uri: "https://europe-west1-spritjakt.cloudfunctions.net/removeEmailHttp",
+      qs: {
+        email: email
+      },
+      json: true,
+    };
+    let res = await rp(options)
+      .then(function (res) {
+        return true;
+      })
+      .catch(function (err) {
+        return false;
+      });
+    return res;
+  }
+
 }
 
 export default SpritjaktClient;

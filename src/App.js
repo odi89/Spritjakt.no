@@ -5,6 +5,7 @@ import { ReactComponent as ReactLogo } from "./assets/logo.svg";
 import firebase from "firebase/app";
 import "firebase/analytics";
 import SearchBar from "./components/SearchBar";
+import NewsLetterSignup from "./components/NewsLetterSignup";
 const firebaseConfig = require("./config.json");
 
 // Initialize Firebase
@@ -35,6 +36,7 @@ class App extends React.Component {
           </p>
         </header>
         <div className="Body">
+          <NewsLetterSignup />
           <SearchBar />
           <ProductList />
         </div>

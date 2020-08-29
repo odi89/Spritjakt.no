@@ -6,6 +6,7 @@ const firebaseAdmin = require("firebase-admin");
 const serviceAccount = require("./configs/serviceAccountKey.json");
 const rp = require("request-promise");
 const SortArray = require("sort-array");
+const { user } = require("firebase-functions/lib/providers/auth");
 
 const allTimeEarliestDate = new Date(1594166400000);
 const td = new Date();
@@ -45,30 +46,6 @@ function httpCorsOptions(req, res) {
   }
 
   return { res, exit };
-}
-
-function prepProduct(p) {
-  if (p.SubType && p.SubType.includes("Brennevin,")) {
-    p.SubType = "Brennevin";
-  }
-  if (p.SubType && p.SubType.includes("Sterkvin, annen")) {
-    p.SubType = "Sterkvin";
-  }
-  if (p.SubType == undefined) {
-    p.SubType = p.Type;
-  }
-
-  if (p.Stock === undefined) {
-    p.Stock = {
-      Stores: [],
-    };
-  }
-  if (p.Stock.Stores === undefined) {
-    p.Stock.stock = p.Stock.Stock;
-    delete p.Stock.Stock;
-    p.Stock.Stores = [];
-  }
-  return p;
 }
 
 exports.fetchProducts = functions.region("europe-west1").runWith(runtimeOpts).pubsub.schedule("45 6 * * *").timeZone("Europe/Paris").onRun(async (context) => {
@@ -225,7 +202,7 @@ exports.productSearchAdvanced = functions.region("europe-west1").runWith(runtime
     } else {
       p.SortingDiscount = 100;
     }
-    p = prepProduct(p);
+    p = FirebaseClient.PrepProduct(p);
   });
 
   return res.send(matchingProducts.splice(0, 20));
@@ -279,29 +256,31 @@ exports.registerEmailHttp = functions.region("europe-west1").runWith(runtimeOpts
 
   let email = req.query.email.toLowerCase();
 
-  let existingEmails = FirebaseClient.GetEmails();
+  let users = await FirebaseClient.GetUsers();
 
-  if ((await existingEmails).includes(email)) {
+  if (users.find(u => u.Email === email)) {
     return res.status(409).send("Email already exist");
   }
 
-  let emailWasRegistered = FirebaseClient.RegisterEmail(email);
-  if (emailWasRegistered) {
-    return res.status(201).send();
+  if (await FirebaseClient.RegisterUser(email)) {
+    return res.status(201).send("Email registered");
   }
   return res.status(500).send("Something went wrong");
 });
 
-exports.sendNewsLetterEmails = functions.region("europe-west1").runWith(runtimeOpts).database.ref("/NewsletterProducts/").onWrite(async (change, context) => {
+exports.sendNewsLetterEmails = functions.region("europe-west1").runWith(runtimeOpts).database.ref("/NewsLetterProducts/").onWrite(async (change, context) => {
   // Exit when the data is deleted.
   if (!change.after.exists()) {
     return null;
   }
   const newsLetterProducts = change.after.val();
-  const emails = FirebaseClient.GetEmails();
+  const users = await FirebaseClient.GetUsers();
+  var emails = [];
+  users.map(u => emails.push(u.Email));
   const emailClient = new EmailClient(newsLetterProducts, emails);
 
-  emailClient.SendEmails();
+  await emailClient.SendEmails();
+  await FirebaseClient.SetNewsLetterProducts([]);
   return null;
 });
 
@@ -310,5 +289,13 @@ exports.removeEmailHttp = functions.region("europe-west1").runWith(runtimeOpts).
   if (exit) {
     return;
   }
-  return;
+  if (req.query.email === undefined || !validateEmail(req.query.email)) {
+    return res.status(400).send();
+  }
+
+  if (await FirebaseClient.RemoveUser(req.query.email)) {
+    return res.send("Email removed");
+  }
+
+  return res.send("Something went wrong");
 });

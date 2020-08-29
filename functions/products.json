@@ -1,0 +1,82 @@
+{
+    "products": [
+        {
+            "Type": "Champagne, brut",
+            "Alcohol": 12.5,
+            "LastUpdated": 1598294780040,
+            "Name": "Chartogne-Taillet Champagne Sainte Anne",
+            "Volume": 0.75,
+            "Stock": {},
+            "ProductStatusSaleName": "Midlertidig utsolgt",
+            "Id": "11068801",
+            "PriceHistory": {},
+            "Country": "Frankrike",
+            "PriceHistorySorted": [],
+            "LatestPrice": 399.9,
+            "ComparingPrice": 369.8,
+            "SortingDiscount": 108.13953488372093,
+            "Discount": "8.1",
+            "SubType": "Champagne, brut"
+        },
+        {
+            "Stock": {
+                "Stores": []
+            },
+            "ProductStatusSaleName": "Utgått",
+            "PriceHistory": {
+                "1594043815465": 349.8,
+                "1598565600000": 389.9,
+                "1594072800000": 349.8
+            },
+            "Volume": 0.75,
+            "Description": {
+                "characteristics": {
+                    "taste": "Frisk og saftig, tanniner og god lengde.",
+                    "colour": "Rød.",
+                    "odour": "Røde bær, skog, krydder og rød frukt."
+                },
+                "recommendedFood": [
+                    {
+                        "foodDesc": "Lyst kjøtt",
+                        "foodId": "D"
+                    },
+                    {
+                        "foodId": "F",
+                        "foodDesc": "Lam og sau"
+                    },
+                    {
+                        "foodId": "G",
+                        "foodDesc": "Småvilt og fugl"
+                    }
+                ],
+                "bitterness": "",
+                "tannins": "05",
+                "fullness": "06",
+                "sweetness": "",
+                "freshness": "07"
+            },
+            "Alcohol": 13,
+            "Name": "Patrick Bouju Super B",
+            "Country": "Frankrike",
+            "Type": "Rødvin",
+            "SearchWords": [
+                "patrick",
+                "bouju",
+                "super",
+                "b"
+            ],
+            "LastUpdated": 1598589912588,
+            "Id": "11443601",
+            "PriceHistorySorted": [
+                "1598565600000",
+                "1594072800000",
+                "1594043815465"
+            ],
+            "LatestPrice": 389.9,
+            "ComparingPrice": 349.8,
+            "SortingDiscount": 111.46369353916523,
+            "Discount": "11.5",
+            "SubType": "Rødvin"
+        }
+    ]
+}

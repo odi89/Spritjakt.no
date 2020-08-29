@@ -61,7 +61,7 @@ module.exports = class FirebaseClient {
         console.log(error);
       }
     }
-    this.SetNewsLetterProducts(newsLetterProducts);
+    await this.SetNewsLetterProducts(newsLetterProducts);
   }
 
   static PrepProduct(p) {
@@ -212,10 +212,9 @@ module.exports = class FirebaseClient {
     return storeObject.StoreList;
   }
 
-  static async GetEmails() {
-
+  static async GetUsers() {
     var emails = [];
-    firebase.firestore().collection("Emails")
+    await firebase.firestore().collection("Users")
       .get()
       .then(function (querySnapshot) {
         querySnapshot.forEach(function (doc) {
@@ -228,23 +227,45 @@ module.exports = class FirebaseClient {
     return emails;
   }
 
-  static async RegisterEmail(email) {
-
-    firebase.firestore().collection("Emails").add(email)
+  static async RegisterUser(email) {
+    let result = false;
+    await firebase.firestore().collection("Users").add({
+      Email: email
+    })
       .then(function (docRef) {
         console.log("email added with ID: ", docRef.id);
-        return true;
+        result = true;
       })
       .catch(function (error) {
         console.error("could not add email: ", error);
-        return false;
       });
+    return result;
   }
 
-  static async RemoveEmail(email) {
+  static async RemoveUser(email) {
+    var result = true;
+    var id = ""
+    await firebase.firestore().collection("Users").where("Email", "==", email)
+      .get()
+      .then(function (querySnapshot) {
+        querySnapshot.forEach(function (doc) {
+          id = doc.id;
+        })
+      }).catch(error => {
+        console.log("Error removing user: ", error);
+        result = false;
+      });
+
+    await firebase.firestore().collection("Users").doc(id).delete()
+      .catch(error => {
+        console.log("Error removing user: ", error);
+        result = false;
+      });
+    return result;
   }
 
-  static async SetNewsLetterProducts(products = []) {
+  static async SetNewsLetterProducts(products) {
+    console.log("Writing " + products.length + " products");
     firebase.database().ref("/NewsLetterProducts/").set(products);
   }
 };
