@@ -31,6 +31,11 @@ class PriceGraph extends React.Component {
       (today.getTime() - pricesReversed[0]) / millisecondsPerDay;
 
     let date = new Date(parseInt(pricesReversed[0]));
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+
     var mostRecentPrice = oldPrice;
     for (let i = 0; i < numberOfDays; i++) {
       if (p.PriceHistory[date.getTime()]) {
