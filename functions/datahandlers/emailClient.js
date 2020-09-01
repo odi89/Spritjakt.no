@@ -1,10 +1,12 @@
-const nodemailer = require("nodemailer");
 const emailAuth = require("../configs/emailAuth.json");
 const fs = require('fs');
 const path = require('path');
 const emailHeader = fs.readFileSync(path.resolve(__dirname, "./templates/header.txt"), 'utf8');
 const emailFooter = fs.readFileSync(path.resolve(__dirname, "./templates/footer.txt"), 'utf8');
 const emailProductItem = fs.readFileSync(path.resolve(__dirname, "./templates/productItem.txt"), 'utf8');
+
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey(emailAuth.sendgridToken);
 
 const greetings = ["Halla Balla!", "Hei Sveis!", "Sjallabais sjef!", "God dag mann, økseskaft!", "Hallo i luken!", "Heisann Sveisann!", "G'day mate!", "Tittei, her er jeg!"];
 
@@ -14,15 +16,12 @@ module.exports = class EmailClient {
 
         this.products = products;
         this.recipients = recipients;
-
-        this.transporter = nodemailer.createTransport(emailAuth);
+        var d = new Date();
+        var date = d.toISOString().slice(0, 10);
         this.options = {
-            from: {
-                name: "Spritjakt.no",
-                address: 'varsel@spritjakt.no'
-            },
+            from: "Spritjakt.no<varsel@spritjakt.no",
             to: '**Is set later**',
-            subject: 'Nyhetsbrev - Skulle du sett, i dag har jeg noen godsaker til deg!',
+            subject: 'Nyhetsbrev ' + date + ' - Ny dag, nye priser',
             html: this.CreateNewsLetterEmail()
         };
     }
@@ -51,19 +50,19 @@ module.exports = class EmailClient {
         return html;
     }
 
-    SendEmails() {
+    async SendEmails() {
 
-        this.recipients.forEach(recipient => {
+        await this.recipients.forEach(async recipient => {
             var mail = this.options;
             mail.to = recipient;
             let footer = emailFooter;
             mail.html += footer.replace(/&SignOffURL&/g, "https://europe-west1-spritjakt.cloudfunctions.net/removeEmailHttp?email=" + recipient);
-            this.transporter.sendMail(mail, function (error, info) {
-                if (error) {
-                    console.log(error);
-                }
-                console.log('Email sent: ' + info.response);
-            });
+            try {
+                console.log("sending email to: " + recipient)
+                await sgMail.send(mail);
+            } catch (error) {
+                console.log(error);
+            }
         });
     }
 }

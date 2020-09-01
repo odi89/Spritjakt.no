@@ -217,7 +217,6 @@ exports.removeEmailHttp = functions.region("europe-west1").runWith(runtimeOpts).
 
 
 exports.prepareEmails = functions.region("europe-west1").runWith(runtimeOpts).pubsub.schedule("45 8 * * *").timeZone("Europe/Paris").onRun(async (context) => {
-
   let d = new Date();
   d.setHours(0);
   d.setMinutes(0);
@@ -250,43 +249,7 @@ exports.prepareEmails = functions.region("europe-west1").runWith(runtimeOpts).pu
   });
 
   var emails = await FirebaseClient.GetEmails();
-  var emailClient = await new EmailClient(newsLetterProducts, emails);
+  var emailClient = new EmailClient(newsLetterProducts, emails);
   await emailClient.SendEmails();
 
-});
-
-exports.testEmails = functions.region("europe-west1").runWith(runtimeOpts).pubsub.schedule("45 8 * * *").timeZone("Europe/Paris").onRun(async (context) => {
-  let d = new Date("2020-08-31");
-  d.setHours(0);
-  d.setMinutes(0);
-  d.setSeconds(0);
-  d.setMilliseconds(0);
-  let products = await FirebaseClient.GetProductsOnSale(d.getTime());
-
-  if (products === undefined || products.length === 0) {
-    return;
-  }
-
-  SortArray(products, {
-    by: "SortingDiscount",
-    order: "asc"
-  });
-
-  let usedCategories = [];
-  var newsLetterProducts = [];
-  await products.map(async p => {
-    let pp = await FirebaseClient.PrepProduct(p);
-
-    if (products.length < 9) {
-      newsLetterProducts.push(pp);
-    } else {
-      if (newsLetterProducts.length < 9 && !usedCategories.includes(pp.SubType)) {
-        newsLetterProducts.push(pp);
-        usedCategories.push(pp.SubType);
-      }
-    }
-  });
-
-  var emailClient = new EmailClient(newsLetterProducts, ["matslovstrandberntsen@gmail.com"]);
-  await emailClient.SendEmails();
 });
