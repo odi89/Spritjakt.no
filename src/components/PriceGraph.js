@@ -30,21 +30,12 @@ class PriceGraph extends React.Component {
     let numberOfDays =
       (today.getTime() - pricesReversed[0]) / millisecondsPerDay;
 
-    let date = new Date(parseInt(pricesReversed[0]));
-    date.setHours(0);
-    date.setMinutes(0);
-    date.setSeconds(0);
-    date.setMilliseconds(0);
+    for (let i = 0; i < pricesReversed.length; i++) {
+      let date = new Date(parseInt(pricesReversed[i]));
 
-    var mostRecentPrice = oldPrice;
-    for (let i = 0; i < numberOfDays; i++) {
-      if (p.PriceHistory[date.getTime()]) {
-        mostRecentPrice = p.PriceHistory[date.getTime()];
-      }
+      let mostRecentPrice = p.PriceHistory[date.getTime()];
       let datestring = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
       config.data.push({ x: datestring, y: mostRecentPrice });
-
-      date.setDate(date.getDate() + 1);
     }
 
     let priceSortedByAmount = SortArray(Object.values(p.PriceHistory), {
@@ -103,7 +94,7 @@ class PriceGraph extends React.Component {
               tickRotation: -25,
               tickSize: 5,
               tickPadding: 5,
-              tickValues: "every 10 days",
+              tickValues: "every 14 days",
               legendPosition: "middle",
             }}
             areaBaselineValue={minPrice}

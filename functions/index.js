@@ -9,13 +9,6 @@ const SortArray = require("sort-array");
 const { user } = require("firebase-functions/lib/providers/auth");
 
 const allTimeEarliestDate = new Date(1594166400000);
-const td = new Date();
-const allowedTimeSpans = {
-  "7days": new Date(td.getFullYear(), td.getMonth(), td.getDate() - 7),
-  "14days": new Date(td.getFullYear(), td.getMonth(), td.getDate() - 14),
-  "30days": new Date(td.getFullYear(), td.getMonth(), td.getDate() - 30),
-  "90days": new Date(td.getFullYear(), td.getMonth(), td.getDate() - 90),
-};
 
 // Initialize the app with a service account, granting admin privileges
 firebaseAdmin.initializeApp({
@@ -73,59 +66,6 @@ exports.fetchStocks = functions.region("europe-west1").runWith(runtimeOpts).pubs
 
   if (freshStocks.length > 0) {
     await FirebaseClient.SetStockUpdateList(freshStocks, true);
-  }
-});
-
-exports.getOnSaleProductsHttp = functions.region("europe-west1").runWith(runtimeOpts).https.onRequest(async (req, oldRes) => {
-  let { res, exit } = httpCorsOptions(req, oldRes);
-  if (exit) {
-    return;
-  }
-
-  let timeSpan = allTimeEarliestDate;
-
-  if (
-    allowedTimeSpans[req.query.timeSpan] !== undefined &&
-    allowedTimeSpans[req.query.timeSpan].getTime() >
-    allTimeEarliestDate.getTime()
-  ) {
-    timeSpan = allowedTimeSpans[req.query.timeSpan];
-  }
-
-  var lastWriteTime = await FirebaseClient.FetchLastWriteTime();
-  lastWriteTime.BasePriceTime = timeSpan.getTime();
-
-  var products = await FirebaseClient.FetchOnSaleProductsFireStore(
-    timeSpan.getTime()
-  );
-
-  return res.send({
-    products: products,
-    LastWriteTime: lastWriteTime,
-  });
-});
-
-exports.keepGetOnSaleProductsHttpAlive = functions.pubsub.schedule("every 3 minutes").timeZone("Europe/Paris").onRun(async (context) => {
-  let functions = [
-    "https://europe-west1-spritjakt.cloudfunctions.net/productSearchAdvanced",
-    "https://europe-west1-spritjakt.cloudfunctions.net/getOnSaleProductsHttp",
-  ];
-  for (const i in functions) {
-    const uri = functions[i];
-    let options = {
-      uri: uri,
-      qs: {
-        pingCall: true,
-      },
-      json: true,
-    };
-    await rp(options)
-      .then(function (res) {
-        console.log(res);
-      })
-      .catch(function (err) {
-        console.log(err);
-      });
   }
 });
 
@@ -231,15 +171,6 @@ exports.stockUpdateListener = functions.region("europe-west1").runWith(runtimeOp
   return await FirebaseClient.SetStockUpdateList(newValue);
 });
 
-exports.getStoresHttp = functions.region("europe-west1").runWith(runtimeOpts).https.onRequest(async (req, oldRes) => {
-  let { res, exit } = httpCorsOptions(req, oldRes);
-  if (exit) {
-    return;
-  }
-  return res.send(await FirebaseClient.GetStores());
-});
-
-
 function validateEmail(email) {
   const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(String(email).toLowerCase());
@@ -256,9 +187,9 @@ exports.registerEmailHttp = functions.region("europe-west1").runWith(runtimeOpts
 
   let email = req.query.email.toLowerCase();
 
-  let users = await FirebaseClient.GetUsers();
+  let emails = await FirebaseClient.GetEmails();
 
-  if (users.find(u => u.Email === email)) {
+  if (emails.includes(email)) {
     return res.status(409).send("Email already exist");
   }
 
@@ -266,22 +197,6 @@ exports.registerEmailHttp = functions.region("europe-west1").runWith(runtimeOpts
     return res.status(201).send("Email registered");
   }
   return res.status(500).send("Something went wrong");
-});
-
-exports.sendNewsLetterEmails = functions.region("europe-west1").runWith(runtimeOpts).database.ref("/NewsLetterProducts/").onWrite(async (change, context) => {
-  // Exit when the data is deleted.
-  if (!change.after.exists()) {
-    return null;
-  }
-  const newsLetterProducts = change.after.val();
-  const users = await FirebaseClient.GetUsers();
-  var emails = [];
-  users.map(u => emails.push(u.Email));
-  const emailClient = new EmailClient(newsLetterProducts, emails);
-
-  await emailClient.SendEmails();
-  await FirebaseClient.SetNewsLetterProducts([]);
-  return null;
 });
 
 exports.removeEmailHttp = functions.region("europe-west1").runWith(runtimeOpts).https.onRequest(async (req, oldRes) => {
@@ -294,8 +209,84 @@ exports.removeEmailHttp = functions.region("europe-west1").runWith(runtimeOpts).
   }
 
   if (await FirebaseClient.RemoveUser(req.query.email)) {
-    return res.send("Email removed");
+    return res.send("<h2>Du er nå fjernet fra Spritjakts nyhetsbrev</h2>");
   }
 
   return res.send("Something went wrong");
+});
+
+
+exports.prepareEmails = functions.region("europe-west1").runWith(runtimeOpts).pubsub.schedule("45 8 * * *").timeZone("Europe/Paris").onRun(async (context) => {
+
+  let d = new Date();
+  d.setHours(0);
+  d.setMinutes(0);
+  d.setSeconds(0);
+  d.setMilliseconds(0);
+  let products = await FirebaseClient.GetProductsOnSale(d.getTime());
+
+  if (products === undefined || products.length === 0) {
+    return;
+  }
+
+  SortArray(products, {
+    by: "SortingDiscount",
+    order: "asc"
+  });
+
+  let usedCategories = [];
+  var newsLetterProducts = [];
+  await products.map(async p => {
+    let pp = await FirebaseClient.PrepProduct(p);
+
+    if (products.length < 9) {
+      newsLetterProducts.push(pp);
+    } else {
+      if (newsLetterProducts.length < 9 && !usedCategories.includes(pp.SubType)) {
+        newsLetterProducts.push(pp);
+        usedCategories.push(pp.SubType);
+      }
+    }
+  });
+
+  var emails = await FirebaseClient.GetEmails();
+  var emailClient = await new EmailClient(newsLetterProducts, emails);
+  await emailClient.SendEmails();
+
+});
+
+exports.testEmails = functions.region("europe-west1").runWith(runtimeOpts).pubsub.schedule("45 8 * * *").timeZone("Europe/Paris").onRun(async (context) => {
+  let d = new Date("2020-08-31");
+  d.setHours(0);
+  d.setMinutes(0);
+  d.setSeconds(0);
+  d.setMilliseconds(0);
+  let products = await FirebaseClient.GetProductsOnSale(d.getTime());
+
+  if (products === undefined || products.length === 0) {
+    return;
+  }
+
+  SortArray(products, {
+    by: "SortingDiscount",
+    order: "asc"
+  });
+
+  let usedCategories = [];
+  var newsLetterProducts = [];
+  await products.map(async p => {
+    let pp = await FirebaseClient.PrepProduct(p);
+
+    if (products.length < 9) {
+      newsLetterProducts.push(pp);
+    } else {
+      if (newsLetterProducts.length < 9 && !usedCategories.includes(pp.SubType)) {
+        newsLetterProducts.push(pp);
+        usedCategories.push(pp.SubType);
+      }
+    }
+  });
+
+  var emailClient = new EmailClient(newsLetterProducts, ["matslovstrandberntsen@gmail.com"]);
+  await emailClient.SendEmails();
 });

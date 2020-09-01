@@ -26,10 +26,13 @@ module.exports = class EmailClient {
             html: this.CreateNewsLetterEmail()
         };
     }
-
     CreateNewsLetterEmail() {
         var html = emailHeader.replace(/&Header&/g, greetings[Math.floor(Math.random() * greetings.length)]);
-        html = html.replace(/&SubHeader&/g, "Jeg bare titter innom for å fortelle deg at det er nye varer som har fått redusert pris i dag.");
+        let subheader = "Jeg bare titter innom for å fortelle deg at det er nye varer som har fått redusert pris i dag.";
+        if (this.products.length == 9) {
+            subheader += "<br />Her er et utdrag av de beste tilbudene.";
+        }
+        html = html.replace(/&SubHeader&/g, subheader);
 
         for (const i in this.products) {
             const product = this.products[i];
@@ -37,7 +40,7 @@ module.exports = class EmailClient {
             productItem = productItem.replace(/&ProductTitle&/g, product.Name);
             productItem = productItem.replace(/&NewPrice&/g, product.LatestPrice);
             productItem = productItem.replace(/&OldPrice&/g, product.ComparingPrice);
-            productItem = productItem.replace(/&Discount&/g, product.Discount);
+            productItem = productItem.replace(/&Discount&/g, (product.SortingDiscount - 100).toFixed(1));
             productItem = productItem.replace(/&ProductImageLink&/g, "https://bilder.vinmonopolet.no/cache/100x100/" + product.Id + "-1.jpg");
             productItem = productItem.replace(/&ProductLink&/g, "https://www.vinmonopolet.no/p/" + product.Id);
 
@@ -45,25 +48,23 @@ module.exports = class EmailClient {
             html += productItem;
         }
 
-        html += emailFooter.replace(/&SignOffURL&/g, "https://spritjakt.no");
         return html;
     }
 
-    async SendEmails() {
+    SendEmails() {
 
         this.recipients.forEach(recipient => {
-            var options = this.options;
-            options.to = recipient;
-
-            this.transporter.sendMail(options, function (error, info) {
+            var mail = this.options;
+            mail.to = recipient;
+            let footer = emailFooter;
+            mail.html += footer.replace(/&SignOffURL&/g, "https://europe-west1-spritjakt.cloudfunctions.net/removeEmailHttp?email=" + recipient);
+            this.transporter.sendMail(mail, function (error, info) {
                 if (error) {
                     console.log(error);
-                } else {
-                    console.log('Email sent: ' + info.response);
                 }
+                console.log('Email sent: ' + info.response);
             });
         });
-
-
     }
 }
+

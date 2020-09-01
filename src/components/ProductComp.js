@@ -52,7 +52,7 @@ class ProductComp extends React.Component {
         <div className="product_img" style={background}></div>
         {showDiff && product.Discount !== "0.0" && (
           <span className="percentage_change">
-            {(priceIsLower ? "" : "+") + product.Discount}%
+            {(priceIsLower ? "" : "+") + (product.SortingDiscount - 100).toFixed(1)}%
           </span>
         )}
         <span className="change_time">

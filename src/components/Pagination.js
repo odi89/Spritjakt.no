@@ -5,22 +5,38 @@ import PageButton from "./PageButton";
 class Pagination extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      page: 1
+    }
   }
   setPage = (page) => {
     this.props.setPage(page);
+    this.setState({ page: page });
   };
 
   renderPageButtons = () => {
     let list = [];
-    for (let i = 1; i <= Math.ceil(this.props.total / this.props.pageSize); i++) {
-      list.push(
-        <PageButton
-          key={"page-" + i}
-          page={i}
-          isSelected={this.props.page == i}
-          setPage={this.setPage.bind(this)}
-        />
-      );
+    var dummyNotSet = true;
+    let pages = Math.ceil(this.props.total / this.props.pageSize);
+    for (let i = 1; i <= pages; i++) {
+      if (pages < 8 || (i < 4 || i > (pages - 3) || this.props.page === i || this.props.page == i + 1 || this.props.page == i - 1)) {
+        list.push(
+          <PageButton
+            key={"page-" + i}
+            page={i}
+            isSelected={this.props.page == i}
+            setPage={this.setPage.bind(this)}
+          />
+        );
+      } else if (pages >= 8 && i === 4 && this.props.page < 4 || this.props.page == i + 2 || this.props.page == i - 2 || this.props.page == pages && i == this.props.page - 4) {
+        list.push(
+          <li>
+            <button style={{ pointerEvents: "none" }} className="pageButton clickable inactive">
+              ...
+            </button>
+          </li>
+        );
+      }
     }
     return list;
   };

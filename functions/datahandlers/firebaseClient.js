@@ -39,31 +39,27 @@ module.exports = class FirebaseClient {
         sp.ProductStatusSaleName = p.ProductStatusSaleName;
         sp.SearchWords = p.SearchWords;
         sp.Description = p.Description;
-        delete sp.PriceHistory[today];
-        let LatestPrice = p.CurrentPrice;
-        let priceHistorySorted = SortArray(Object.keys(sp.PriceHistory), {
+
+        sp.priceHistorySorted = SortArray(Object.keys(sp.PriceHistory), {
           order: "desc",
         });
 
-        if (priceHistorySorted.length !== 0) {
-          let comparativeBasePriceDate = priceHistorySorted[0];
-          //Only updating LastUpdate if there has been an actual pricechange
-          if (sp.PriceHistory[comparativeBasePriceDate] !== LatestPrice) {
-            sp.LastUpdated = p.LastUpdated;
-            sp.PriceHistory[today] = p.CurrentPrice;
-            if (sp.PriceHistory[comparativeBasePriceDate] > LatestPrice) {
-              newsLetterProducts.push(this.PrepProduct(sp));
-            }
-          }
+        p.LatestPrice = p.CurrentPrice;
+        sp.ComparingPrice = p.PriceHistory[sp.priceHistorySorted[0]];
+
+        sp.SortingDiscount = (sp.LatestPrice / sp.ComparingPrice) * 100;
+        sp.PriceHistory[today] = sp.CurrentPrice;
+
+        if (p.SortingDiscount <= 99 || p.SortingDiscount >= 101) {
+          sp.LastUpdated = p.LastUpdated;
         }
       }
       try {
-        await productRef.update(sp);
+        await productRef.update(this.PrepProduct(sp));
       } catch (error) {
         console.log(error);
       }
     }
-    await this.SetNewsLetterProducts(newsLetterProducts);
   }
 
   static PrepProduct(p) {
@@ -72,6 +68,9 @@ module.exports = class FirebaseClient {
     }
     if (p.SubType && p.SubType.includes("Sterkvin, annen")) {
       p.SubType = "Sterkvin";
+    }
+    if (p.SubType && p.SubType.includes("Alkoholfri")) {
+      p.SubType = "Alkoholfritt";
     }
     if (p.SubType == undefined) {
       p.SubType = p.Type;
@@ -90,64 +89,18 @@ module.exports = class FirebaseClient {
     return p;
   }
 
-  static async FetchOnSaleProductsFireStore(UpdateTime) {
-    let productRef = firebase
-      .firestore()
-      .collection("Products")
-      .where("LastUpdated", ">=", UpdateTime)
-      .orderBy("LastUpdated");
-    let snapshot = await productRef.get();
-    let products = [];
-    if (!snapshot.empty) {
-      snapshot.forEach((p) => {
-        p = p.data();
-
-        p.PriceHistorySorted = SortArray(Object.keys(p.PriceHistory), {
-          order: "desc",
-        });
-
-        if (p.PriceHistorySorted.length === 1) {
-          return;
-        }
-
-        p.LatestPrice = p.PriceHistory[p.PriceHistorySorted[0]];
-
-        let priceHistorySortedAndFiltered = p.PriceHistorySorted.filter(
-          (priceDate) =>
-            priceDate <= UpdateTime &&
-            priceDate !== p.PriceHistorySorted[0]
-        );
-
-        if (priceHistorySortedAndFiltered.length === 0) {
-          return;
-        }
-
-        let oldestPrice = p.PriceHistory[priceHistorySortedAndFiltered[0]];
-        p.ComparingPrice = oldestPrice;
-        p.SortingDiscount = (p.LatestPrice / oldestPrice) * 100;
-        p.Discount = (p.SortingDiscount - 100).toFixed(1);
-
-        if (p.SortingDiscount !== 100) {
-          p = this.PrepProduct(p);
-          products.push(p);
-        }
-
-      });
-    }
-    return products;
-  }
-
   static async ProductSearchAdvanced(searchStrings) {
     let productRef = firebase
       .firestore()
       .collection("Products")
       .where("SearchWords", "array-contains-any", searchStrings)
-      .orderBy("SearchableName");
+      .orderBy("Name");
     let snapshot = await productRef.get();
     let products = [];
     if (!snapshot.empty) {
       snapshot.forEach((p) => {
         products.push(p.data());
+        console.log(p.Id);
       });
     }
     return products;
@@ -187,6 +140,22 @@ module.exports = class FirebaseClient {
     firebase.database().ref("/StocksToBeFetched/").set(Stocks);
   }
 
+  static async GetProductsOnSale(lastUpdated) {
+    let products = [];
+    await firebase.firestore()
+      .collection("Products")
+      .where("LastUpdated", ">=", lastUpdated)
+      .orderBy("LastUpdated")
+      .get().then(function (qs) {
+        if (!qs.empty) {
+          qs.forEach((p) => {
+            products.push(p.data());
+          });
+        }
+      });
+    return products;
+  }
+
   static async UpdateProductStock(stock) {
     const productRef = firebase
       .firestore()
@@ -214,13 +183,14 @@ module.exports = class FirebaseClient {
     return storeObject.StoreList;
   }
 
-  static async GetUsers() {
+  static async GetEmails() {
     var emails = [];
     await firebase.firestore().collection("Users")
       .get()
       .then(function (querySnapshot) {
         querySnapshot.forEach(function (doc) {
-          emails.push(doc.data());
+          let user = doc.data();
+          emails.push(user.Email);
         });
       })
       .catch(function (error) {
@@ -266,8 +236,4 @@ module.exports = class FirebaseClient {
     return result;
   }
 
-  static async SetNewsLetterProducts(products) {
-    console.log("Writing " + products.length + " products");
-    firebase.database().ref("/NewsLetterProducts/").set(products);
-  }
 };

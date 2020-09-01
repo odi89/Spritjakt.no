@@ -1,24 +1,40 @@
 import rp from "request-promise";
+import firebase from "firebase/app";
+import "firebase/firestore";
+
+const allTimeEarliestDate = new Date(1594166400000);
+const td = new Date();
+const allowedTimeSpans = {
+  "7days": new Date(td.getFullYear(), td.getMonth(), td.getDate() - 7),
+  "14days": new Date(td.getFullYear(), td.getMonth(), td.getDate() - 14),
+  "30days": new Date(td.getFullYear(), td.getMonth(), td.getDate() - 30),
+  "90days": new Date(td.getFullYear(), td.getMonth(), td.getDate() - 90),
+};
 
 class SpritjaktClient {
-  static async FetchProducts(timeSpan) {
-    let options = {
-      uri:
-        "https://europe-west1-spritjakt.cloudfunctions.net/getOnSaleProductsHttp",
-      qs: {
-        timeSpan: timeSpan,
-      },
-      json: true,
-    };
-    let res = await rp(options)
-      .then(function (res) {
-        return res;
-      })
-      .catch(function (err) {
-        console.log(err);
-      });
 
-    return res === undefined ? [] : res.products;
+  static async FetchProducts(timeSpan) {
+
+
+    if (allowedTimeSpans[timeSpan].getTime() > allTimeEarliestDate.getTime()) {
+      timeSpan = allowedTimeSpans[timeSpan];
+    } else {
+      timeSpan = allTimeEarliestDate;
+    }
+
+    let products = [];
+    await firebase.firestore()
+      .collection("Products")
+      .where("LastUpdated", ">=", timeSpan.getTime())
+      .orderBy("LastUpdated")
+      .get().then(function (qs) {
+        if (!qs.empty) {
+          qs.forEach((p) => {
+            products.push(p.data());
+          });
+        }
+      });
+    return products;
   }
   static async SearchProducts(searchString) {
     let options = {
@@ -39,18 +55,10 @@ class SpritjaktClient {
     return res === undefined ? [] : res;
   }
   static async FetchStores() {
-    let options = {
-      uri: "https://europe-west1-spritjakt.cloudfunctions.net/getStoresHttp",
-      json: true,
-    };
-    let res = await rp(options)
-      .then(function (res) {
-        return res;
-      })
-      .catch(function (err) {
-        console.log(err);
-      });
-    return res === undefined ? [] : res;
+    const storesRef = firebase.firestore().collection("Stores").doc("1");
+    let storeObject = storesRef.get();
+    storeObject = (await storeObject).data();
+    return storeObject.StoreList;
   }
 
   static async registerEmail(email) {

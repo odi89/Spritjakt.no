@@ -29,7 +29,7 @@ class ProductList extends React.Component {
       showAllresults: true,
       highlightedProduct: false,
       graphIsVisible: false,
-      timeSpan: "30days",
+      timeSpan: "14days",
       productResult: [],
       page: 1,
       pageSize: 24,
@@ -285,7 +285,7 @@ class ProductList extends React.Component {
 
   setPage = (page) => {
     this.setState({ page: page });
-    Scroll.animateScroll.scrollTo(this.productList.current.offsetTop - 300);
+    Scroll.animateScroll.scrollTo(this.productList.current.offsetTop - 100);
   };
   render() {
 
