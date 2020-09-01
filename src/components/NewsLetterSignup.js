@@ -67,7 +67,7 @@ class NewsLetterSignup extends React.Component {
             <div className={"NewsLetterWrapper " + (this.state.isActive ? " active " : "")} >
                 <div className={"NewsLetterSignup " + (this.state.isActive ? " active " : "") + (isMobile ? " handheld" : " desktop")}>
                     <FontAwesomeIcon icon={faEnvelope} size="2x" />
-                    <h4>Få epost hver gang en vare blir satt ned i pris!</h4>
+                    <h4>Få varsel på epost varer blir satt ned i pris!</h4>
                     {this.state.resultMessage !== "" &&
                         <div className="resultMessage">{this.state.resultMessage}</div>
                     }

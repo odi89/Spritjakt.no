@@ -30,7 +30,10 @@ class SpritjaktClient {
       .get().then(function (qs) {
         if (!qs.empty) {
           qs.forEach((p) => {
-            products.push(p.data());
+            p = p.data();
+            if (p.SortingDiscount && p.SortingDiscount >= 101 || p.SortingDiscount <= 99) {
+              products.push(p);
+            }
           });
         }
       });
